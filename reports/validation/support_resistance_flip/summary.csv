@@ -1,0 +1,9 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+support_resistance_flip,601868,2025-07-10,95,True,True,True,True,2.28,2.2,2.3042857142857143,,[],"{'flip_level': 2.22, 'recent_low': 2.2, 'breakout_date': '2025-07-07'}",中国能建
+support_resistance_flip,601669,2025-07-18,95,True,True,True,True,5.08,4.88,5.16,,[],"{'flip_level': 4.91, 'recent_low': 4.88, 'breakout_date': '2025-07-11'}",中国电建
+support_resistance_flip,601016,2020-01-13,95,True,True,True,True,2.06,1.99,2.097142857142857,,[],"{'flip_level': 1.99, 'recent_low': 1.99, 'breakout_date': '2020-01-02'}",节能风电
+support_resistance_flip,603077,2021-04-12,95,True,True,True,True,1.56,1.5,1.6135714285714287,,[],"{'flip_level': 1.5, 'recent_low': 1.5, 'breakout_date': '2021-03-04'}",和邦生物
+support_resistance_flip,601991,2024-03-29,95,True,True,True,True,2.81,2.61,2.892857142857143,,[],"{'flip_level': 2.61, 'recent_low': 2.61, 'breakout_date': '2024-03-08'}",大唐发电
+support_resistance_flip,300185,2022-07-13,95,True,True,True,True,2.97,2.75,3.065714285714286,,[],"{'flip_level': 2.71, 'recent_low': 2.75, 'breakout_date': '2022-06-07'}",通裕重工
+support_resistance_flip,300185,2025-06-16,95,True,True,True,True,2.78,2.63,2.8557142857142854,,[],"{'flip_level': 2.58, 'recent_low': 2.63, 'breakout_date': '2025-05-07'}",通裕重工
+support_resistance_flip,300185,2025-08-18,95,True,True,True,True,3.06,2.97,3.1407142857142856,,[],"{'flip_level': 3.02, 'recent_low': 2.97, 'breakout_date': '2025-07-22'}",通裕重工

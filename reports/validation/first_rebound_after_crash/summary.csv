@@ -1,0 +1,9 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+first_rebound_after_crash,601016,2022-03-16,95,True,True,True,True,3.84,3.66,4.031428571428571,,[],"{'crash_date': '2022-03-15', 'crash_drop_pct': -0.08933002481389586}",节能风电
+first_rebound_after_crash,601016,2025-04-08,95,True,True,True,True,2.71,2.58,2.795714285714286,,[],"{'crash_date': '2025-04-07', 'crash_drop_pct': -0.09722222222222215}",节能风电
+first_rebound_after_crash,603077,2021-07-08,95,True,True,True,True,1.94,1.87,2.0335714285714284,,[],"{'crash_date': '2021-07-07', 'crash_drop_pct': -0.10526315789473673}",和邦生物
+first_rebound_after_crash,603077,2022-03-16,95,True,True,True,True,3.4,3.26,3.577142857142857,,[],"{'crash_date': '2022-03-15', 'crash_drop_pct': -0.09917355371900824}",和邦生物
+first_rebound_after_crash,603077,2022-04-27,95,True,True,True,True,2.97,2.81,3.146428571428572,,[],"{'crash_date': '2022-04-26', 'crash_drop_pct': -0.08441558441558449}",和邦生物
+first_rebound_after_crash,002506,2020-08-17,95,True,True,True,True,5.68,5.16,6.111428571428571,,[],"{'crash_date': '2020-08-14', 'crash_drop_pct': -0.09947643979057595}",协鑫集成
+first_rebound_after_crash,002506,2026-02-24,95,True,True,True,True,4.74,4.3,5.177142857142857,,[],"{'crash_date': '2026-02-13', 'crash_drop_pct': -0.09643605870020965}",协鑫集成
+first_rebound_after_crash,300185,2020-09-21,95,True,True,True,True,5.38,4.81,6.2299999999999995,,[],"{'crash_date': '2020-09-18', 'crash_drop_pct': -0.08067542213883672}",通裕重工

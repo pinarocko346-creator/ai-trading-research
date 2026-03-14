@@ -1,0 +1,29 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,score,name
+double_breakout,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.7214285714285715,,[],"{'breakout_level': 6.65, 'recent_high_10': 7.19, 'volume_ratio': 3.6487968787219267}",118.75,中国电建
+double_breakout,300185,2026-03-13,95,True,True,True,True,4.21,3.24,4.5285714285714285,,[],"{'breakout_level': 3.59, 'recent_high_10': 4.21, 'volume_ratio': 4.445206608749034}",118.75,通裕重工
+double_breakout,600227,2026-03-13,95,True,True,True,True,4.37,3.4,5.048571428571429,,[],"{'breakout_level': 4.28, 'recent_high_10': 4.37, 'volume_ratio': 2.1480330425204817}",118.75,赤天化
+double_breakout,600726,2026-03-13,95,True,True,True,True,4.27,2.8,4.681428571428571,,[],"{'breakout_level': 3.88, 'recent_high_10': 4.27, 'volume_ratio': 3.5246869388620725}",118.75,华电能源
+double_breakout,601868,2026-03-12,95,True,True,True,True,3.8,2.65,4.095714285714285,,[],"{'breakout_level': 3.45, 'recent_high_10': 3.8, 'volume_ratio': 4.222414399283276}",118.75,中国能建
+double_breakout,601016,2026-03-12,95,True,True,True,True,4.43,3.3,4.757142857142856,,[],"{'breakout_level': 4.03, 'recent_high_10': 4.43, 'volume_ratio': 3.8129868605102684}",118.75,节能风电
+double_breakout,603077,2026-03-12,95,True,True,True,True,3.33,2.74,3.7071428571428573,,[],"{'breakout_level': 3.1, 'recent_high_10': 3.33, 'volume_ratio': 1.793031823260597}",118.75,和邦生物
+double_breakout,000420,2026-03-12,95,True,True,True,True,5.02,4.23,5.428571428571428,,[],"{'breakout_level': 4.83, 'recent_high_10': 5.02, 'volume_ratio': 1.2053650729662473}",118.75,吉林化纤
+double_breakout,600821,2026-03-12,95,True,True,True,True,10.87,8.07,12.304285714285713,,[],"{'breakout_level': 10.41, 'recent_high_10': 10.87, 'volume_ratio': 1.9291212513123774}",118.75,金开新能
+double_breakout,601618,2026-03-12,95,True,True,True,True,3.29,3.09,3.462857142857143,,[],"{'breakout_level': 3.26, 'recent_high_10': 3.31, 'volume_ratio': 1.3754161177178144}",118.75,中国中冶
+double_breakout,600256,2026-03-12,95,True,True,True,True,7.63,6.46,8.544285714285714,,[],"{'breakout_level': 7.48, 'recent_high_10': 7.7, 'volume_ratio': 1.5883944121572495}",118.75,广汇能源
+double_breakout,600703,2026-03-12,95,True,True,True,True,18.74,15.71,20.837142857142855,,[],"{'breakout_level': 17.42, 'recent_high_10': 18.74, 'volume_ratio': 2.4172010459022704}",118.75,三安光电
+double_breakout,000537,2026-03-12,95,True,True,True,True,12.51,9.02,13.35142857142857,,[],"{'breakout_level': 11.37, 'recent_high_10': 12.51, 'volume_ratio': 2.24412739037914}",118.75,绿发电力
+double_breakout,600905,2026-03-11,95,True,True,True,True,4.49,4.21,4.635714285714286,,[],"{'breakout_level': 4.4, 'recent_high_10': 4.5, 'volume_ratio': 3.236736923389726}",118.75,三峡能源
+double_breakout,000839,2026-03-11,95,True,True,True,True,3.98,3.18,4.458571428571429,,[],"{'breakout_level': 3.77, 'recent_high_10': 3.98, 'volume_ratio': 3.064920080020541}",118.75,国安股份
+right_shoulder,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.19,,[],"{'head_low': 5.44, 'right_low': 5.84, 'left_shoulder': 5.47, 'neckline': 7.19}",109.25,中国电建
+right_shoulder,603077,2026-03-13,95,True,True,True,True,3.28,2.83,3.54,,[],"{'head_low': 2.32, 'right_low': 2.83, 'left_shoulder': 2.43, 'neckline': 3.54}",109.25,和邦生物
+right_shoulder,601991,2026-03-13,95,True,True,True,True,4.74,3.97,4.99,,[],"{'head_low': 3.62, 'right_low': 3.97, 'left_shoulder': 3.65, 'neckline': 4.99}",109.25,大唐发电
+right_shoulder,300185,2026-03-13,95,True,True,True,True,4.21,3.24,4.21,,[],"{'head_low': 2.91, 'right_low': 3.24, 'left_shoulder': 2.96, 'neckline': 4.21}",109.25,通裕重工
+right_shoulder,600905,2026-03-13,95,True,True,True,True,4.43,4.27,4.52,,[],"{'head_low': 4.06, 'right_low': 4.27, 'left_shoulder': 4.08, 'neckline': 4.52}",109.25,三峡能源
+right_shoulder,300296,2026-03-13,95,True,True,True,True,9.21,8.1,9.7,,[],"{'head_low': 6.87, 'right_low': 8.1, 'left_shoulder': 6.91, 'neckline': 9.7}",109.25,利亚德
+right_shoulder,601618,2026-03-13,95,True,True,True,True,3.31,3.11,3.46,,[],"{'head_low': 3.0, 'right_low': 3.11, 'left_shoulder': 3.01, 'neckline': 3.46}",109.25,中国中冶
+right_shoulder,601728,2026-03-13,95,True,True,True,True,6.18,5.91,6.2,,[],"{'head_low': 5.62, 'right_low': 5.91, 'left_shoulder': 5.64, 'neckline': 6.2}",109.25,中国电信
+right_shoulder,600227,2026-03-13,95,True,True,True,True,4.37,3.4,4.37,,[],"{'head_low': 2.41, 'right_low': 3.4, 'left_shoulder': 2.5, 'neckline': 4.37}",109.25,赤天化
+right_shoulder,601985,2026-03-13,95,True,True,True,True,9.24,8.75,9.3,,[],"{'head_low': 8.46, 'right_low': 8.75, 'left_shoulder': 8.5, 'neckline': 9.3}",109.25,中国核电
+right_shoulder,002015,2026-03-13,95,True,True,True,True,22.28,16.38,22.99,,[],"{'head_low': 10.21, 'right_low': 16.38, 'left_shoulder': 10.43, 'neckline': 22.99}",109.25,协鑫能科
+right_shoulder,600108,2026-03-13,95,True,True,True,True,6.26,5.18,7.17,,[],"{'head_low': 3.37, 'right_low': 5.18, 'left_shoulder': 3.41, 'neckline': 7.17}",109.25,亚盛集团
+right_shoulder,002366,2026-03-13,95,True,True,True,True,8.88,7.93,9.17,,[],"{'head_low': 7.37, 'right_low': 7.93, 'left_shoulder': 7.47, 'neckline': 9.17}",109.25,融发核电

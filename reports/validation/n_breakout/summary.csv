@@ -1,0 +1,7 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+n_breakout,601669,2021-07-30,95,True,True,True,True,4.39,3.43,4.838571428571428,,[],"{'first_break_date': '2021-07-12', 'pullback_low': 3.43, 'prior_high': 4.39}",中国电建
+n_breakout,601669,2025-07-18,95,True,True,True,True,5.08,4.84,5.24,,[],"{'first_break_date': '2025-07-09', 'pullback_low': 4.84, 'prior_high': 5.1}",中国电建
+n_breakout,601016,2019-03-07,95,True,True,True,True,2.7,2.12,2.882857142857143,,[],"{'first_break_date': '2019-02-11', 'pullback_low': 2.12, 'prior_high': 2.7}",节能风电
+n_breakout,601016,2020-01-13,95,True,True,True,True,2.06,1.92,2.1342857142857143,,[],"{'first_break_date': '2019-12-16', 'pullback_low': 1.92, 'prior_high': 2.07}",节能风电
+n_breakout,002506,2025-07-10,95,True,True,True,True,2.86,2.33,3.1142857142857143,,[],"{'first_break_date': '2025-06-17', 'pullback_low': 2.33, 'prior_high': 2.86}",协鑫集成
+n_breakout,601991,2024-03-29,95,True,True,True,True,2.81,2.56,2.9757142857142855,,[],"{'first_break_date': '2024-03-04', 'pullback_low': 2.56, 'prior_high': 2.81}",大唐发电

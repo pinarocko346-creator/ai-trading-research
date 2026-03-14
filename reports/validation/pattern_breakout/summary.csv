@@ -1,0 +1,7 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+pattern_breakout,601669,2025-07-18,95,True,True,True,True,5.08,5.02,5.24,,[],"{'box_low': 4.58, 'box_high': 5.02, 'width_pct': 0.09606986899563308, 'breakout_pct': 0.011952191235059861, 'prior_below_box': True}",中国电建
+pattern_breakout,601016,2020-01-13,95,True,True,True,True,2.06,2.03,2.1342857142857143,,[],"{'box_low': 1.87, 'box_high': 2.03, 'width_pct': 0.08556149732620304, 'breakout_pct': 0.014778325123152834, 'prior_below_box': True}",节能风电
+pattern_breakout,601016,2021-07-30,95,True,True,True,True,3.42,3.38,3.702857142857143,,[],"{'box_low': 2.98, 'box_high': 3.38, 'width_pct': 0.13422818791946306, 'breakout_pct': 0.011834319526627229, 'prior_below_box': True}",节能风电
+pattern_breakout,601016,2024-05-06,95,True,True,True,True,3.0,2.95,3.14,,[],"{'box_low': 2.71, 'box_high': 2.95, 'width_pct': 0.08856088560885617, 'breakout_pct': 0.01694915254237282, 'prior_below_box': True}",节能风电
+pattern_breakout,002506,2020-07-06,95,True,True,True,True,3.02,2.94,3.2357142857142858,,[],"{'box_low': 2.49, 'box_high': 2.94, 'width_pct': 0.18072289156626495, 'breakout_pct': 0.02721088435374152, 'prior_below_box': True}",协鑫集成
+pattern_breakout,601991,2022-08-16,95,True,True,True,True,2.86,2.83,3.0828571428571423,,[],"{'box_low': 2.42, 'box_high': 2.83, 'width_pct': 0.16942148760330586, 'breakout_pct': 0.01060070671378085, 'prior_below_box': True}",大唐发电

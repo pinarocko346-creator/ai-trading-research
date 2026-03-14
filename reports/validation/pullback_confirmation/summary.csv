@@ -1,0 +1,5 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+pullback_confirmation,601868,2025-07-10,95,True,True,True,True,2.28,2.2,2.2785714285714285,,[],"{'breakout_day': '2025-07-07', 'breakout_level': 2.22, 'pullback_low': 2.2}",中国能建
+pullback_confirmation,601669,2025-07-18,95,True,True,True,True,5.08,4.88,5.08,,[],"{'breakout_day': '2025-07-11', 'breakout_level': 4.91, 'pullback_low': 4.88}",中国电建
+pullback_confirmation,601016,2020-01-13,95,True,True,True,True,2.06,1.99,2.0742857142857143,,[],"{'breakout_day': '2020-01-02', 'breakout_level': 1.99, 'pullback_low': 1.99}",节能风电
+pullback_confirmation,601991,2024-03-29,95,True,True,True,True,2.81,2.61,2.8457142857142856,,[],"{'breakout_day': '2024-03-08', 'breakout_level': 2.61, 'pullback_low': 2.61}",大唐发电

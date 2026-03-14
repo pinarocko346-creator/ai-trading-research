@@ -1,0 +1,4 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,name
+spring,601016,2018-06-29,95,True,True,True,True,2.3,2.25,2.7,,[],"{'box_low': 2.28, 'volume_ratio': 0.9514279285219094}",节能风电
+spring,603077,2022-03-16,95,True,True,True,True,3.4,3.16,4.15,,[],"{'box_low': 3.25, 'volume_ratio': 0.9312017463143064}",和邦生物
+spring,300185,2023-12-11,95,True,True,True,True,2.37,2.33,2.5,,[],"{'box_low': 2.36, 'volume_ratio': 0.9384959779441053}",通裕重工

@@ -1,0 +1,3 @@
+sample_id,signal_type,symbol,signal_date,label_bucket,timeframe,is_valid,market_context,notes
+bd_001,false_breakdown,300750,2024-02-01,boundary,daily,false,downtrend,像假诱空但回拉力度不够
+bd_002,right_shoulder,600519,2024-04-12,boundary,daily,false,range,像右肩但头肩结构并不完整

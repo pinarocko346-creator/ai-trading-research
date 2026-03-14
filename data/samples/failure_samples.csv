@@ -1,0 +1,3 @@
+sample_id,signal_type,symbol,signal_date,label_bucket,timeframe,is_valid,market_context,notes
+fail_001,2b_structure,002594,2024-05-06,failure,daily,false,continued_selloff,假跌破后未快速收回关键位
+fail_002,pullback_confirmation,601318,2024-06-21,failure,daily,false,weak_pullback,回抽跌破突破位后继续走弱

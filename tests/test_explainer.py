@@ -1,0 +1,69 @@
+from __future__ import annotations
+
+import unittest
+from datetime import date
+
+from app.ai.explainer import explain_signal, generate_ai_review
+from app.core.types import ResearchSignal
+
+
+class ExplainerTests(unittest.TestCase):
+    def test_secondary_signals_render_in_text(self) -> None:
+        signal = ResearchSignal(
+            signal_type="jumping_creek",
+            symbol="000001",
+            signal_date=date(2026, 3, 14),
+            confidence_score=95,
+            trend_ok=True,
+            location_ok=True,
+            pattern_ok=True,
+            volume_ok=True,
+            factors={
+                "resistance": 10.5,
+                "secondary_signal_names": ["双突破", "N字突破"],
+                "secondary_signal_count": 2,
+            },
+        )
+
+        summary = explain_signal(signal)
+        review = generate_ai_review(signal)
+
+        self.assertIn("次级标签：双突破、N字突破", summary)
+        self.assertIn("标签补充：该候选同时具备双突破、N字突破特征。", review)
+        self.assertIn("结构参考：阻力位=10.5", review)
+        self.assertIn("关键因子：", summary)
+        self.assertIn("- 阻力位：10.5", summary)
+        self.assertNotIn("secondary_signal_names", summary)
+        self.assertNotIn("secondary_signal_types", summary)
+        self.assertNotIn("secondary_signal_count", summary)
+        self.assertNotIn('{"resistance"', summary)
+
+    def test_neutral_market_review_is_not_described_as_weak(self) -> None:
+        signal = ResearchSignal(
+            signal_type="double_breakout",
+            symbol="000002",
+            signal_date=date(2026, 3, 14),
+            confidence_score=90,
+            trend_ok=True,
+            location_ok=True,
+            pattern_ok=True,
+            volume_ok=True,
+            factors={
+                "market_ok": False,
+                "market_regime": "neutral",
+                "market_score": 56.89,
+                "sector_ok": False,
+                "sector_score": 48.5,
+                "sector_band": "edge_high",
+            },
+        )
+
+        review = generate_ai_review(signal)
+
+        self.assertIn("市场层处于中性区间", review)
+        self.assertIn("所属板块处于边缘活跃高位区", review)
+        self.assertNotIn("市场层环境偏弱", review)
+
+
+if __name__ == "__main__":
+    unittest.main()

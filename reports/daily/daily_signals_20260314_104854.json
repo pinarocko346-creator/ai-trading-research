@@ -1,0 +1,262 @@
+[
+  {
+    "signal_type": "double_breakout",
+    "symbol": "603077",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 3.33,
+    "stop_price": 2.74,
+    "target_price": 3.7071428571428573,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "breakout_level": 3.1,
+      "recent_high_10": 3.33,
+      "volume_ratio": 1.793031823260597
+    }
+  },
+  {
+    "signal_type": "double_breakout",
+    "symbol": "000420",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 5.02,
+    "stop_price": 4.23,
+    "target_price": 5.428571428571428,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "breakout_level": 4.83,
+      "recent_high_10": 5.02,
+      "volume_ratio": 1.2053650729662473
+    }
+  },
+  {
+    "signal_type": "double_breakout",
+    "symbol": "601618",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 3.29,
+    "stop_price": 3.09,
+    "target_price": 3.462857142857143,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "breakout_level": 3.26,
+      "recent_high_10": 3.31,
+      "volume_ratio": 1.3754161177178144
+    }
+  },
+  {
+    "signal_type": "2b_structure",
+    "symbol": "600868",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 4.33,
+    "stop_price": 3.79,
+    "target_price": 4.39,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "prior_support": 3.92,
+      "fake_break_low": 3.79,
+      "breakdown_date": "2026-03-11",
+      "support_source": "swing_low",
+      "reclaim_date": "2026-03-12",
+      "reclaim_in_time": true,
+      "volume_ratio": 1.7681844812351681
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "601669",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 7.19,
+    "stop_price": 5.84,
+    "target_price": 7.7214285714285715,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 6.65,
+      "volume_ratio": 3.6487968787219267,
+      "breakout_pct": 0.081203007518797,
+      "range_atr_ratio": 1.6182795698924752,
+      "prior_below_resistance": true
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "300185",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 4.21,
+    "stop_price": 3.24,
+    "target_price": 4.5285714285714285,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 3.59,
+      "volume_ratio": 4.445206608749034,
+      "breakout_pct": 0.17270194986072426,
+      "range_atr_ratio": 3.955156950672645,
+      "prior_below_resistance": true
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "600227",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 4.37,
+    "stop_price": 3.4,
+    "target_price": 5.048571428571429,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 4.28,
+      "volume_ratio": 2.1480330425204817,
+      "breakout_pct": 0.021028037383177534,
+      "range_atr_ratio": 1.2084210526315788,
+      "prior_below_resistance": true
+    }
+  },
+  {
+    "signal_type": "false_breakdown",
+    "symbol": "601390",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 5.94,
+    "stop_price": 5.78,
+    "target_price": 6.47,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "support": 5.85,
+      "breakdown_date": "2026-03-11",
+      "reclaim_date": "2026-03-13",
+      "reclaim_in_time": true,
+      "support_source": "swing_low",
+      "volume_ratio": 1.103658187935989
+    }
+  },
+  {
+    "signal_type": "false_breakdown",
+    "symbol": "600028",
+    "signal_date": "2026-03-11",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 6.51,
+    "stop_price": 6.31,
+    "target_price": 8.11,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "support": 6.43,
+      "breakdown_date": "2026-03-11",
+      "reclaim_date": "2026-03-11",
+      "reclaim_in_time": true,
+      "support_source": "swing_low",
+      "volume_ratio": 0.9531004572152537
+    }
+  },
+  {
+    "signal_type": "strength_emergence",
+    "symbol": "601985",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 9.24,
+    "stop_price": 8.46,
+    "target_price": 9.3,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "box_low": 8.46,
+      "box_high": 9.3,
+      "midline": 8.88,
+      "width_pct": 0.09929078014184395,
+      "upper_zone_level": 9.0648,
+      "close_to_high_pct": 0.006451612903225859,
+      "closes_above_midline": 5
+    }
+  },
+  {
+    "signal_type": "n_breakout",
+    "symbol": "600726",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 4.27,
+    "stop_price": 2.62,
+    "target_price": 4.681428571428571,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "first_break_date": "2026-02-24",
+      "pullback_low": 2.62,
+      "prior_high": 4.27
+    }
+  },
+  {
+    "signal_type": "selling_climax",
+    "symbol": "002429",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 11.94,
+    "stop_price": 10.16,
+    "target_price": 10.498999999999999,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "climax_date": "2026-03-11",
+      "volume_ratio": 1.9555182449432245,
+      "drawdown_from_high_60": 0.13757039420756223
+    }
+  }
+]

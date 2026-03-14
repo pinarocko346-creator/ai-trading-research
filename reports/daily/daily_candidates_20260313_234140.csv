@@ -1,0 +1,56 @@
+signal_type,symbol,signal_date,confidence_score,trend_ok,location_ok,pattern_ok,volume_ok,entry_price,stop_price,target_price,invalid_reason,risk_tags,factors,score,name,signal_name
+double_breakout,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.7214285714285715,,[],"{'breakout_level': 6.65, 'recent_high_10': 7.19, 'volume_ratio': 3.6487968787219267}",118.75,中国电建,双突破
+double_breakout,300185,2026-03-13,95,True,True,True,True,4.21,3.24,4.5285714285714285,,[],"{'breakout_level': 3.59, 'recent_high_10': 4.21, 'volume_ratio': 4.445206608749034}",118.75,通裕重工,双突破
+double_breakout,600227,2026-03-13,95,True,True,True,True,4.37,3.4,5.048571428571429,,[],"{'breakout_level': 4.28, 'recent_high_10': 4.37, 'volume_ratio': 2.1480330425204817}",118.75,赤天化,双突破
+double_breakout,600726,2026-03-13,95,True,True,True,True,4.27,2.8,4.681428571428571,,[],"{'breakout_level': 3.88, 'recent_high_10': 4.27, 'volume_ratio': 3.5246869388620725}",118.75,华电能源,双突破
+double_breakout,601868,2026-03-12,95,True,True,True,True,3.8,2.65,4.095714285714285,,[],"{'breakout_level': 3.45, 'recent_high_10': 3.8, 'volume_ratio': 4.222414399283276}",118.75,中国能建,双突破
+double_breakout,601016,2026-03-12,95,True,True,True,True,4.43,3.3,4.757142857142856,,[],"{'breakout_level': 4.03, 'recent_high_10': 4.43, 'volume_ratio': 3.8129868605102684}",118.75,节能风电,双突破
+double_breakout,603077,2026-03-12,95,True,True,True,True,3.33,2.74,3.7071428571428573,,[],"{'breakout_level': 3.1, 'recent_high_10': 3.33, 'volume_ratio': 1.793031823260597}",118.75,和邦生物,双突破
+double_breakout,000420,2026-03-12,95,True,True,True,True,5.02,4.23,5.428571428571428,,[],"{'breakout_level': 4.83, 'recent_high_10': 5.02, 'volume_ratio': 1.2053650729662473}",118.75,吉林化纤,双突破
+double_breakout,600821,2026-03-12,95,True,True,True,True,10.87,8.07,12.304285714285713,,[],"{'breakout_level': 10.41, 'recent_high_10': 10.87, 'volume_ratio': 1.9291212513123774}",118.75,金开新能,双突破
+double_breakout,601618,2026-03-12,95,True,True,True,True,3.29,3.09,3.462857142857143,,[],"{'breakout_level': 3.26, 'recent_high_10': 3.31, 'volume_ratio': 1.3754161177178144}",118.75,中国中冶,双突破
+double_breakout,600256,2026-03-12,95,True,True,True,True,7.63,6.46,8.544285714285714,,[],"{'breakout_level': 7.48, 'recent_high_10': 7.7, 'volume_ratio': 1.5883944121572495}",118.75,广汇能源,双突破
+double_breakout,600905,2026-03-11,95,True,True,True,True,4.49,4.21,4.635714285714286,,[],"{'breakout_level': 4.4, 'recent_high_10': 4.5, 'volume_ratio': 3.236736923389726}",118.75,三峡能源,双突破
+double_breakout,000839,2026-03-11,95,True,True,True,True,3.98,3.18,4.458571428571429,,[],"{'breakout_level': 3.77, 'recent_high_10': 3.98, 'volume_ratio': 3.064920080020541}",118.75,国安股份,双突破
+2b_structure,600868,2026-03-12,95,True,True,True,True,4.33,3.79,4.39,,[],"{'prior_support': 3.92, 'fake_break_low': 3.79, 'breakdown_date': '2026-03-11', 'support_source': 'swing_low', 'reclaim_date': '2026-03-12', 'reclaim_in_time': True, 'volume_ratio': 1.7681844812351681}",114.0,梅雁吉祥,2B结构
+right_shoulder,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.19,,[],"{'head_low': 5.44, 'right_low': 5.84, 'left_shoulder': 5.47, 'neckline': 7.19}",109.25,中国电建,顺势头肩
+right_shoulder,603077,2026-03-13,95,True,True,True,True,3.28,2.83,3.54,,[],"{'head_low': 2.32, 'right_low': 2.83, 'left_shoulder': 2.43, 'neckline': 3.54}",109.25,和邦生物,顺势头肩
+right_shoulder,601991,2026-03-13,95,True,True,True,True,4.74,3.97,4.99,,[],"{'head_low': 3.62, 'right_low': 3.97, 'left_shoulder': 3.65, 'neckline': 4.99}",109.25,大唐发电,顺势头肩
+right_shoulder,300185,2026-03-13,95,True,True,True,True,4.21,3.24,4.21,,[],"{'head_low': 2.91, 'right_low': 3.24, 'left_shoulder': 2.96, 'neckline': 4.21}",109.25,通裕重工,顺势头肩
+right_shoulder,600905,2026-03-13,95,True,True,True,True,4.43,4.27,4.52,,[],"{'head_low': 4.06, 'right_low': 4.27, 'left_shoulder': 4.08, 'neckline': 4.52}",109.25,三峡能源,顺势头肩
+right_shoulder,300296,2026-03-13,95,True,True,True,True,9.21,8.1,9.7,,[],"{'head_low': 6.87, 'right_low': 8.1, 'left_shoulder': 6.91, 'neckline': 9.7}",109.25,利亚德,顺势头肩
+right_shoulder,601618,2026-03-13,95,True,True,True,True,3.31,3.11,3.46,,[],"{'head_low': 3.0, 'right_low': 3.11, 'left_shoulder': 3.01, 'neckline': 3.46}",109.25,中国中冶,顺势头肩
+right_shoulder,601728,2026-03-13,95,True,True,True,True,6.18,5.91,6.2,,[],"{'head_low': 5.62, 'right_low': 5.91, 'left_shoulder': 5.64, 'neckline': 6.2}",109.25,中国电信,顺势头肩
+right_shoulder,600227,2026-03-13,95,True,True,True,True,4.37,3.4,4.37,,[],"{'head_low': 2.41, 'right_low': 3.4, 'left_shoulder': 2.5, 'neckline': 4.37}",109.25,赤天化,顺势头肩
+right_shoulder,601985,2026-03-13,95,True,True,True,True,9.24,8.75,9.3,,[],"{'head_low': 8.46, 'right_low': 8.75, 'left_shoulder': 8.5, 'neckline': 9.3}",109.25,中国核电,顺势头肩
+right_shoulder,002015,2026-03-13,95,True,True,True,True,22.28,16.38,22.99,,[],"{'head_low': 10.21, 'right_low': 16.38, 'left_shoulder': 10.43, 'neckline': 22.99}",109.25,协鑫能科,顺势头肩
+right_shoulder,600108,2026-03-13,95,True,True,True,True,6.26,5.18,7.17,,[],"{'head_low': 3.37, 'right_low': 5.18, 'left_shoulder': 3.41, 'neckline': 7.17}",109.25,亚盛集团,顺势头肩
+jumping_creek,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.7214285714285715,,[],"{'resistance': 6.65, 'volume_ratio': 3.6487968787219267}",104.5,中国电建,跳跃小溪
+jumping_creek,300185,2026-03-13,95,True,True,True,True,4.21,3.24,4.5285714285714285,,[],"{'resistance': 3.59, 'volume_ratio': 4.445206608749034}",104.5,通裕重工,跳跃小溪
+jumping_creek,600227,2026-03-13,95,True,True,True,True,4.37,3.4,5.048571428571429,,[],"{'resistance': 4.28, 'volume_ratio': 2.1480330425204817}",104.5,赤天化,跳跃小溪
+jumping_creek,600726,2026-03-13,95,True,True,True,True,4.27,2.8,4.681428571428571,,[],"{'resistance': 3.88, 'volume_ratio': 3.5246869388620725}",104.5,华电能源,跳跃小溪
+jumping_creek,601868,2026-03-12,95,True,True,True,True,3.8,2.65,4.095714285714285,,[],"{'resistance': 3.45, 'volume_ratio': 4.222414399283276}",104.5,中国能建,跳跃小溪
+jumping_creek,601016,2026-03-12,95,True,True,True,True,4.43,3.3,4.757142857142856,,[],"{'resistance': 4.03, 'volume_ratio': 3.8129868605102684}",104.5,节能风电,跳跃小溪
+jumping_creek,603077,2026-03-12,95,True,True,True,True,3.33,2.74,3.7071428571428573,,[],"{'resistance': 3.1, 'volume_ratio': 1.793031823260597}",104.5,和邦生物,跳跃小溪
+jumping_creek,600821,2026-03-12,95,True,True,True,True,10.87,8.07,12.304285714285713,,[],"{'resistance': 10.41, 'volume_ratio': 1.9291212513123774}",104.5,金开新能,跳跃小溪
+jumping_creek,600256,2026-03-12,95,True,True,True,True,7.63,6.46,8.544285714285714,,[],"{'resistance': 7.48, 'volume_ratio': 1.5883944121572495}",104.5,广汇能源,跳跃小溪
+jumping_creek,600905,2026-03-11,95,True,True,True,True,4.49,4.21,4.635714285714286,,[],"{'resistance': 4.4, 'volume_ratio': 3.236736923389726}",104.5,三峡能源,跳跃小溪
+jumping_creek,000839,2026-03-11,95,True,True,True,True,3.98,3.18,4.458571428571429,,[],"{'resistance': 3.77, 'volume_ratio': 3.064920080020541}",104.5,国安股份,跳跃小溪
+strength_emergence,600905,2026-03-13,95,True,True,True,True,4.43,4.06,4.52,,[],"{'box_low': 4.06, 'box_high': 4.52, 'midline': 4.289999999999999, 'width_pct': 0.11330049261083744}",99.75,三峡能源,强势出现
+strength_emergence,601618,2026-03-13,95,True,True,True,True,3.31,3.0,3.46,,[],"{'box_low': 3.0, 'box_high': 3.46, 'midline': 3.23, 'width_pct': 0.15333333333333332}",99.75,中国中冶,强势出现
+strength_emergence,601668,2026-03-13,95,True,True,True,True,5.15,4.9,5.2,,[],"{'box_low': 4.9, 'box_high': 5.2, 'midline': 5.050000000000001, 'width_pct': 0.061224489795918324}",99.75,中国建筑,强势出现
+strength_emergence,601985,2026-03-13,95,True,True,True,True,9.24,8.46,9.3,,[],"{'box_low': 8.46, 'box_high': 9.3, 'midline': 8.88, 'width_pct': 0.09929078014184395}",99.75,中国核电,强势出现
+pattern_breakout,601669,2026-03-13,95,True,True,True,True,7.19,6.36,7.7214285714285715,,[],"{'box_low': 5.44, 'box_high': 6.36, 'width_pct': 0.1691176470588235}",95.0,中国电建,形态突破
+pattern_breakout,601016,2026-03-13,95,True,True,True,True,4.42,3.8,4.8,,[],"{'box_low': 3.02, 'box_high': 3.8, 'width_pct': 0.25827814569536417}",95.0,节能风电,形态突破
+pattern_breakout,601991,2026-03-13,95,True,True,True,True,4.74,4.16,5.098571428571429,,[],"{'box_low': 3.62, 'box_high': 4.16, 'width_pct': 0.14917127071823205}",95.0,大唐发电,形态突破
+pattern_breakout,300185,2026-03-13,95,True,True,True,True,4.21,3.44,4.5285714285714285,,[],"{'box_low': 2.91, 'box_high': 3.44, 'width_pct': 0.1821305841924398}",95.0,通裕重工,形态突破
+pattern_breakout,600930,2026-03-13,95,True,True,True,True,6.76,6.22,7.07,,[],"{'box_low': 5.88, 'box_high': 6.22, 'width_pct': 0.057823129251700654}",95.0,华电新能,形态突破
+pattern_breakout,600905,2026-03-13,95,True,True,True,True,4.43,4.4,4.594285714285714,,[],"{'box_low': 4.06, 'box_high': 4.4, 'width_pct': 0.08374384236453221}",95.0,三峡能源,形态突破
+pattern_breakout,002202,2026-03-13,95,True,True,True,True,31.43,30.53,35.034285714285716,,[],"{'box_low': 24.56, 'box_high': 30.53, 'width_pct': 0.24307817589576558}",95.0,金风科技,形态突破
+pattern_breakout,601985,2026-03-13,95,True,True,True,True,9.24,9.07,9.584285714285715,,[],"{'box_low': 8.46, 'box_high': 9.07, 'width_pct': 0.07210401891252947}",95.0,中国核电,形态突破
+n_breakout,601669,2026-03-13,95,True,True,True,True,7.19,5.84,7.7214285714285715,,[],"{'first_break_date': '2026-03-06', 'pullback_low': 5.84, 'prior_high': 7.19}",90.25,中国电建,N字突破
+n_breakout,600227,2026-03-13,95,True,True,True,True,4.37,2.83,5.048571428571429,,[],"{'first_break_date': '2026-02-25', 'pullback_low': 2.83, 'prior_high': 4.37}",90.25,赤天化,N字突破
+selling_climax,002429,2026-03-13,95,True,True,True,True,11.94,10.16,10.498999999999999,,[],"{'climax_date': '2026-03-11', 'volume_ratio': 1.9555182449432245, 'drawdown_from_high_60': 0.13757039420756223}",90.25,兆驰股份,抛售高潮
+n_breakout,600726,2026-03-13,95,True,True,True,True,4.27,2.62,4.681428571428571,,[],"{'first_break_date': '2026-02-24', 'pullback_low': 2.62, 'prior_high': 4.27}",90.25,华电能源,N字突破
+selling_climax,002202,2026-03-12,95,True,True,True,True,31.29,29.15,27.543,,[],"{'climax_date': '2026-03-12', 'volume_ratio': 1.9144524729766006, 'drawdown_from_high_60': 0.15500945179584125}",90.25,金风科技,抛售高潮
+first_rebound_after_crash,600759,2026-03-11,95,True,True,True,True,7.56,7.49,8.24,,[],"{'crash_date': '2026-03-10', 'crash_drop_pct': -0.09975961538461539}",85.5,洲际油气,急跌首次反弹

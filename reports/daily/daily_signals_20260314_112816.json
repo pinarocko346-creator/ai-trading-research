@@ -1,0 +1,320 @@
+[
+  {
+    "signal_type": "double_breakout",
+    "symbol": "603077",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 3.33,
+    "stop_price": 2.74,
+    "target_price": 3.7071428571428573,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "breakout_level": 3.1,
+      "recent_high_10": 3.33,
+      "volume_ratio": 1.793031823260597,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": true,
+      "sector_score": 68.11,
+      "industry_name": "磷肥及磷化工",
+      "industry_score": 68.11,
+      "concept_names": [
+        "磷化工",
+        "消毒剂"
+      ],
+      "concept_scores": [
+        49.16,
+        41.74
+      ]
+    }
+  },
+  {
+    "signal_type": "double_breakout",
+    "symbol": "000420",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 5.02,
+    "stop_price": 4.23,
+    "target_price": 5.428571428571428,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "breakout_level": 4.83,
+      "recent_high_10": 5.02,
+      "volume_ratio": 1.2053650729662473,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 0.0,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [],
+      "concept_scores": []
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "300185",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 4.21,
+    "stop_price": 3.24,
+    "target_price": 4.5285714285714285,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 3.59,
+      "volume_ratio": 4.445206608749034,
+      "breakout_pct": 0.17270194986072426,
+      "range_atr_ratio": 3.955156950672645,
+      "prior_below_resistance": true,
+      "secondary_signal_names": [
+        "双突破"
+      ],
+      "secondary_signal_types": [
+        "double_breakout"
+      ],
+      "secondary_signal_count": 1,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": true,
+      "sector_score": 70.14,
+      "industry_name": "风电零部件",
+      "industry_score": 70.14,
+      "concept_names": [
+        "核污染防治"
+      ],
+      "concept_scores": [
+        39.32
+      ]
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "601669",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 7.19,
+    "stop_price": 5.84,
+    "target_price": 7.7214285714285715,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 6.65,
+      "volume_ratio": 3.6487968787219267,
+      "breakout_pct": 0.081203007518797,
+      "range_atr_ratio": 1.6182795698924752,
+      "prior_below_resistance": true,
+      "secondary_signal_names": [
+        "N字突破",
+        "双突破"
+      ],
+      "secondary_signal_types": [
+        "n_breakout",
+        "double_breakout"
+      ],
+      "secondary_signal_count": 2,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 43.96,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [
+        "工程建设",
+        "长期破净"
+      ],
+      "concept_scores": [
+        43.96,
+        40.28
+      ]
+    }
+  },
+  {
+    "signal_type": "false_breakdown",
+    "symbol": "601390",
+    "signal_date": "2026-03-13",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 5.94,
+    "stop_price": 5.78,
+    "target_price": 6.47,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "support": 5.85,
+      "breakdown_date": "2026-03-11",
+      "reclaim_date": "2026-03-13",
+      "reclaim_in_time": true,
+      "support_source": "swing_low",
+      "volume_ratio": 1.103658187935989,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 43.96,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [
+        "工程建设",
+        "长期破净",
+        "磁悬浮概念"
+      ],
+      "concept_scores": [
+        43.96,
+        40.28,
+        37.05
+      ]
+    }
+  },
+  {
+    "signal_type": "jumping_creek",
+    "symbol": "601868",
+    "signal_date": "2026-03-12",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 3.8,
+    "stop_price": 2.65,
+    "target_price": 4.095714285714285,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "resistance": 3.45,
+      "volume_ratio": 4.222414399283276,
+      "breakout_pct": 0.10144927536231874,
+      "range_atr_ratio": 2.028985507246377,
+      "prior_below_resistance": true,
+      "secondary_signal_names": [
+        "双突破"
+      ],
+      "secondary_signal_types": [
+        "double_breakout"
+      ],
+      "secondary_signal_count": 1,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 43.96,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [
+        "工程建设"
+      ],
+      "concept_scores": [
+        43.96
+      ]
+    }
+  },
+  {
+    "signal_type": "false_breakdown",
+    "symbol": "600028",
+    "signal_date": "2026-03-11",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 6.51,
+    "stop_price": 6.31,
+    "target_price": 8.11,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "support": 6.43,
+      "breakdown_date": "2026-03-11",
+      "reclaim_date": "2026-03-11",
+      "reclaim_in_time": true,
+      "support_source": "swing_low",
+      "volume_ratio": 0.9531004572152537,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 0.0,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [],
+      "concept_scores": []
+    }
+  },
+  {
+    "signal_type": "first_rebound_after_crash",
+    "symbol": "600759",
+    "signal_date": "2026-03-11",
+    "confidence_score": 95,
+    "trend_ok": true,
+    "location_ok": true,
+    "pattern_ok": true,
+    "volume_ok": true,
+    "entry_price": 7.56,
+    "stop_price": 7.49,
+    "target_price": 8.24,
+    "invalid_reason": null,
+    "risk_tags": [],
+    "factors": {
+      "crash_date": "2026-03-10",
+      "crash_drop_pct": -0.09975961538461539,
+      "market_ok": false,
+      "market_score": 55.37,
+      "market_regime": "neutral",
+      "market_up_ratio": 0.274,
+      "market_limit_up_count": 69,
+      "market_limit_down_count": 25,
+      "sector_ok": false,
+      "sector_score": 0.0,
+      "industry_name": "",
+      "industry_score": 0.0,
+      "concept_names": [],
+      "concept_scores": []
+    }
+  }
+]
