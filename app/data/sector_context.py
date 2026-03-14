@@ -21,9 +21,10 @@ class SectorFilterConfig:
     top_industries: int = 35
     top_concepts: int = 50
     max_concepts_per_stock: int = 3
-    min_sector_score: float = 55.0
-    edge_high_min_score: float = 48.0
-    edge_low_min_score: float = 43.0
+    crowded_min_score: float = 65.0
+    min_sector_score: float = 50.0
+    edge_high_min_score: float = 40.0
+    edge_low_min_score: float = 30.0
     exclude_concept_keywords: list[str] = field(
         default_factory=lambda: ["昨日", "昨日连板", "昨日打二板", "昨日首板"]
     )

@@ -23,7 +23,10 @@ def main() -> None:
 
     config = yaml.safe_load((PROJECT_ROOT / "config" / "strategy_13_points.yaml").read_text(encoding="utf-8"))
     thresholds = RuleThresholds(**config["thresholds"])
-    ingest_config = DataIngestConfig(cache_dir=PROJECT_ROOT / "data" / "cache")
+    ingest_config = DataIngestConfig(
+        cache_dir=PROJECT_ROOT / "data" / "cache",
+        **config.get("ingest", {}),
+    )
 
     rows: list[dict[str, object]] = []
     output_dir = PROJECT_ROOT / "reports" / "annotation_cases"

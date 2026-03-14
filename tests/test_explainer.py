@@ -64,6 +64,31 @@ class ExplainerTests(unittest.TestCase):
         self.assertIn("所属板块处于边缘活跃高位区", review)
         self.assertNotIn("市场层环境偏弱", review)
 
+    def test_crowded_sector_review_adds_overheat_caution(self) -> None:
+        signal = ResearchSignal(
+            signal_type="double_breakout",
+            symbol="000003",
+            signal_date=date(2026, 3, 14),
+            confidence_score=90,
+            trend_ok=True,
+            location_ok=True,
+            pattern_ok=True,
+            volume_ok=True,
+            factors={
+                "market_ok": True,
+                "market_regime": "risk_on",
+                "sector_ok": False,
+                "sector_score": 82.0,
+                "sector_band": "crowded",
+            },
+        )
+
+        summary = explain_signal(signal)
+        review = generate_ai_review(signal)
+
+        self.assertIn("过热拥挤", summary)
+        self.assertIn("所属板块热度过高且拥挤", review)
+
 
 if __name__ == "__main__":
     unittest.main()

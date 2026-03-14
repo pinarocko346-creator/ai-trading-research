@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from contextlib import closing
 from dataclasses import dataclass
+import sqlite3
 
 import pandas as pd
+
+from app.data.ingest import DataIngestConfig, resolve_sqlite_db_path
 
 
 @dataclass(slots=True)
@@ -20,6 +24,54 @@ def _import_akshare():
     except ImportError as exc:
         raise RuntimeError("缺少 akshare，无法加载 A 股股票池。") from exc
     return ak
+
+
+def _load_sqlite_spot(config: DataIngestConfig) -> pd.DataFrame:
+    trade_dates_query = """
+        SELECT date
+        FROM (
+            SELECT DISTINCT date
+            FROM kline_data
+            ORDER BY date DESC
+            LIMIT 20
+        )
+        ORDER BY date
+    """
+    db_path = resolve_sqlite_db_path(config)
+    with closing(sqlite3.connect(db_path)) as conn:
+        trade_dates = pd.read_sql_query(trade_dates_query, conn)["date"].astype(str).tolist()
+        if not trade_dates:
+            return pd.DataFrame(columns=["symbol", "name", "close", "volume", "avg_volume_20", "turnover_rate", "pct_chg"])
+        placeholders = ",".join("?" for _ in trade_dates)
+        spot_query = f"""
+            SELECT
+                k.code AS symbol,
+                COALESCE(s.name, k.code) AS name,
+                k.date,
+                k.close,
+                k.volume,
+                k.turnover AS turnover_rate,
+                k.pct_chg
+            FROM kline_data k
+            LEFT JOIN stock_list s
+              ON s.code = k.code
+            WHERE k.date IN ({placeholders})
+        """
+        frame = pd.read_sql_query(spot_query, conn, params=trade_dates)
+
+    frame["date"] = pd.to_datetime(frame["date"])
+    for column in ("close", "volume", "turnover_rate", "pct_chg"):
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    frame = frame.sort_values(["symbol", "date"]).reset_index(drop=True)
+
+    latest = frame.groupby("symbol", as_index=False).tail(1).copy()
+    avg_volume = (
+        frame.groupby("symbol", as_index=False)["volume"]
+        .mean()
+        .rename(columns={"volume": "avg_volume_20"})
+    )
+    latest = latest.merge(avg_volume, on="symbol", how="left")
+    return latest[["symbol", "name", "close", "volume", "avg_volume_20", "turnover_rate", "pct_chg"]].reset_index(drop=True)
 
 
 def filter_tradeable_universe(frame: pd.DataFrame, config: UniverseConfig | None = None) -> pd.DataFrame:
@@ -43,7 +95,10 @@ def filter_tradeable_universe(frame: pd.DataFrame, config: UniverseConfig | None
     return filtered.reset_index(drop=True)
 
 
-def load_a_share_spot() -> pd.DataFrame:
+def load_a_share_spot(ingest_config: DataIngestConfig | None = None) -> pd.DataFrame:
+    if ingest_config and ingest_config.source == "sqlite":
+        return _load_sqlite_spot(ingest_config)
+
     ak = _import_akshare()
     spot = ak.stock_zh_a_spot_em()
     column_map = {
@@ -52,6 +107,7 @@ def load_a_share_spot() -> pd.DataFrame:
         "最新价": "close",
         "成交量": "volume",
         "换手率": "turnover_rate",
+        "涨跌幅": "pct_chg",
     }
     normalized = spot.rename(columns=column_map).copy()
     return normalized

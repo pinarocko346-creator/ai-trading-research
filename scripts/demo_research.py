@@ -26,7 +26,10 @@ def main() -> None:
     signal_config = config["signals"]
     thresholds = RuleThresholds(**config["thresholds"])
     backtest_config = BacktestConfig(**config["backtest"])
-    ingest_config = DataIngestConfig(cache_dir=PROJECT_ROOT / "data" / "cache")
+    ingest_config = DataIngestConfig(
+        cache_dir=PROJECT_ROOT / "data" / "cache",
+        **config.get("ingest", {}),
+    )
 
     all_signals = []
     price_map = {}

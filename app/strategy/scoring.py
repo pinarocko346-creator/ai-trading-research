@@ -6,19 +6,19 @@ from app.core.types import ResearchSignal
 
 
 SIGNAL_PRIORITY_WEIGHT = {
-    "selling_climax": 0.95,
-    "2b_structure": 1.2,
-    "false_breakdown": 1.1,
-    "right_shoulder": 1.15,
-    "double_breakout": 1.25,
-    "strength_emergence": 1.05,
-    "jumping_creek": 1.1,
-    "pullback_confirmation": 1.0,
+    "selling_climax": 0.55,
+    "2b_structure": 1.05,
+    "false_breakdown": 1.15,
+    "right_shoulder": 1.2,
+    "double_breakout": 1.1,
+    "strength_emergence": 1.15,
+    "jumping_creek": 1.05,
+    "pullback_confirmation": 1.15,
     "n_breakout": 0.95,
-    "support_resistance_flip": 0.95,
+    "support_resistance_flip": 1.2,
     "spring": 0.95,
     "pattern_breakout": 1.0,
-    "first_rebound_after_crash": 0.9,
+    "first_rebound_after_crash": 0.85,
 }
 
 

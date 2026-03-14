@@ -60,12 +60,20 @@ def main() -> None:
     scan_config = ScanConfig(
         max_symbols=args.max_symbols,
         cache_dir=PROJECT_ROOT / "data" / "cache",
+        ingest_config=DataIngestConfig(
+            cache_dir=PROJECT_ROOT / "data" / "cache",
+            **config.get("ingest", {}),
+        ),
         market_filter=market_filter,
         sector_filter=sector_filter,
     )
-    ingest_config = DataIngestConfig(cache_dir=PROJECT_ROOT / "data" / "cache")
+    ingest_config = scan_config.ingest_config
 
-    universe = load_default_universe(universe_config, max_symbols=args.max_symbols)
+    universe = load_default_universe(
+        universe_config,
+        max_symbols=args.max_symbols,
+        ingest_config=ingest_config,
+    )
     scan_results = scan_market(
         universe,
         thresholds=thresholds,

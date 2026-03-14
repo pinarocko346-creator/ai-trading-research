@@ -55,36 +55,66 @@ class ThreeLayerFilterTests(unittest.TestCase):
         self.assertEqual(adjustment, 2.0)
 
     def test_sector_adjustment_uses_calibrated_bands(self) -> None:
-        config = SectorFilterConfig(min_sector_score=55.0)
-        strong = _sector_score_adjustment({"sector_score": 68.0}, config)
-        medium = _sector_score_adjustment({"sector_score": 55.0}, config)
+        config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
+        crowded = _sector_score_adjustment({"sector_score": 68.0}, config)
+        strong = _sector_score_adjustment({"sector_score": 55.0}, config)
         edge_high = _sector_score_adjustment({"sector_score": 49.0}, config)
-        edge_low = _sector_score_adjustment({"sector_score": 44.0}, config)
+        edge_low = _sector_score_adjustment({"sector_score": 35.0}, config)
+        weak = _sector_score_adjustment({"sector_score": 20.0}, config)
 
-        self.assertEqual(strong, 6.0)
-        self.assertEqual(medium, 3.0)
-        self.assertEqual(edge_high, 0.5)
-        self.assertEqual(edge_low, -2.5)
+        self.assertEqual(crowded, -3.5)
+        self.assertEqual(strong, 1.5)
+        self.assertEqual(edge_high, 2.5)
+        self.assertEqual(edge_low, 1.0)
+        self.assertEqual(weak, -1.5)
 
-    def test_filter_ok_only_allows_edge_high_in_neutral_regime(self) -> None:
-        config = SectorFilterConfig(min_sector_score=55.0)
+    def test_filter_ok_avoids_crowded_and_allows_edge_low_for_reversal(self) -> None:
+        config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
         allowed = _filter_ok(
             {"market_regime": "neutral", "market_score": 56.89},
-            {"sector_score": 48.5},
+            {"sector_score": 35.0},
             config,
+            "false_breakdown",
         )
         blocked = _filter_ok(
             {"market_regime": "neutral", "market_score": 56.89},
-            {"sector_score": 43.96},
+            {"sector_score": 68.0},
             config,
+            "false_breakdown",
         )
         self.assertTrue(allowed)
         self.assertFalse(blocked)
 
-    def test_sector_band_marks_edge_zones(self) -> None:
-        config = SectorFilterConfig(min_sector_score=55.0)
-        high_band = _sector_band({"sector_score": 48.5}, config)
-        low_band = _sector_band({"sector_score": 43.96}, config)
+    def test_filter_ok_keeps_trend_signal_on_strong_or_edge_high(self) -> None:
+        config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
+        strong_allowed = _filter_ok(
+            {"market_regime": "neutral", "market_score": 56.89},
+            {"sector_score": 55.0},
+            config,
+            "double_breakout",
+        )
+        edge_high_allowed = _filter_ok(
+            {"market_regime": "neutral", "market_score": 56.89},
+            {"sector_score": 45.0},
+            config,
+            "jumping_creek",
+        )
+        edge_low_blocked = _filter_ok(
+            {"market_regime": "neutral", "market_score": 56.89},
+            {"sector_score": 35.0},
+            config,
+            "double_breakout",
+        )
+        self.assertTrue(strong_allowed)
+        self.assertTrue(edge_high_allowed)
+        self.assertFalse(edge_low_blocked)
+
+    def test_sector_band_marks_crowded_and_edge_zones(self) -> None:
+        config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
+        crowded_band = _sector_band({"sector_score": 68.0}, config)
+        high_band = _sector_band({"sector_score": 49.0}, config)
+        low_band = _sector_band({"sector_score": 35.0}, config)
+        self.assertEqual(crowded_band, "crowded")
         self.assertEqual(high_band, "edge_high")
         self.assertEqual(low_band, "edge_low")
 

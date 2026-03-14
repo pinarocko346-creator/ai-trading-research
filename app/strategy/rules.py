@@ -25,6 +25,38 @@ PROGRAMMABLE_SIGNAL_CODES = {
     "first_rebound_after_crash",
 }
 
+PREPARE_REQUIRED_COLUMNS = [
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "ma_10",
+    "ma_20",
+    "ma_60",
+    "rolling_high_20",
+    "rolling_low_20",
+    "breakout_level_20",
+    "support_level_20",
+    "avg_volume_20",
+    "volume_ratio",
+    "body_pct",
+    "range_pct",
+    "bullish",
+    "bearish",
+    "pct_change",
+    "atr_14",
+    "trend_up",
+    "trend_down",
+    "drawdown_from_high_60",
+    "retracement_50_20",
+    "is_limit_up_like",
+    "is_limit_down_like",
+    "swing_low_flag",
+    "swing_high_flag",
+]
+
 
 def build_signal_catalog() -> list[SignalDefinition]:
     return [
@@ -111,7 +143,9 @@ class RuleThresholds:
 
 
 def _prepare_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    return build_price_features(frame).dropna().reset_index(drop=True)
+    featured = build_price_features(frame)
+    required = [column for column in PREPARE_REQUIRED_COLUMNS if column in featured.columns]
+    return featured.dropna(subset=required).reset_index(drop=True)
 
 
 def _prior_swing_levels(

@@ -9,7 +9,7 @@ import yaml
 
 from app.backtest.engine import BacktestConfig, run_signal_backtest
 from app.backtest.metrics import summarize_trades
-from app.data.ingest import DataIngestConfig, fetch_a_share_history
+from app.data.ingest import DataIngestConfig, fetch_a_share_history, load_sqlite_breadth_history
 from app.data.market_context import MarketFilterConfig, fetch_index_history, score_market_snapshot
 from app.data.sector_context import SectorFilterConfig, load_sector_snapshot
 from app.data.universe import UniverseConfig
@@ -34,6 +34,11 @@ def _safe_name(value: str) -> str:
 
 def _load_config() -> dict:
     return yaml.safe_load((PROJECT_ROOT / "config" / "strategy_13_points.yaml").read_text(encoding="utf-8"))
+
+
+def _resolve_research_universe_config(config: dict) -> UniverseConfig:
+    universe_section = config.get("research_universe") or config["universe"]
+    return UniverseConfig(**universe_section)
 
 
 def _normalize_board_history(frame: pd.DataFrame) -> pd.DataFrame:
@@ -171,7 +176,7 @@ def main() -> None:
 
     config = _load_config()
     thresholds = RuleThresholds(**config["thresholds"])
-    universe_config = UniverseConfig(**config["universe"])
+    universe_config = _resolve_research_universe_config(config)
     backtest_config = BacktestConfig(**config["backtest"])
     market_filter = MarketFilterConfig(
         cache_dir=PROJECT_ROOT / "data" / "cache" / "market",
@@ -185,14 +190,22 @@ def main() -> None:
         cache_dir=PROJECT_ROOT / "data" / "cache",
         start_date=args.start_date,
         end_date=args.end_date,
+        **config.get("ingest", {}),
     )
 
-    universe = load_default_universe(universe_config, max_symbols=args.max_symbols)
+    universe = load_default_universe(
+        universe_config,
+        max_symbols=args.max_symbols,
+        ingest_config=ingest_config,
+    )
     price_map: dict[str, pd.DataFrame] = {}
     for symbol in universe["symbol"].astype(str):
         price_map[symbol] = fetch_a_share_history(symbol, ingest_config)
 
-    breadth_by_date = _build_daily_breadth(price_map)
+    if ingest_config.source == "sqlite":
+        breadth_by_date = load_sqlite_breadth_history(ingest_config)
+    else:
+        breadth_by_date = _build_daily_breadth(price_map)
     index_histories = {
         name: fetch_index_history(code, market_filter)
         for name, code in market_filter.index_symbols.items()
@@ -239,6 +252,7 @@ def main() -> None:
     grouped_signals: dict[str, list] = {
         "filter_ok_true": [],
         "filter_ok_false": [],
+        "crowded": [],
         "strong": [],
         "edge_high": [],
         "edge_low": [],
@@ -248,9 +262,8 @@ def main() -> None:
 
     start_ts = pd.Timestamp(args.start_date)
     for symbol, history in price_map.items():
-        sliced = history[history["date"] >= start_ts].copy()
         history_signals = scan_signal_history(
-            sliced,
+            history,
             symbol=symbol,
             enabled_signals=config["signals"]["enabled"],
             thresholds=thresholds,
@@ -259,6 +272,8 @@ def main() -> None:
         )
         for signal in history_signals:
             signal_date = pd.Timestamp(signal.signal_date)
+            if signal_date < start_ts:
+                continue
             breadth_frame = breadth_by_date.get(signal_date)
             if breadth_frame is None or breadth_frame.empty:
                 continue
@@ -272,7 +287,12 @@ def main() -> None:
             )
             theme_payload = _build_historical_theme_payload(symbol, signal_date, theme_map, board_histories, sector_filter)
             sector_band = _sector_band(theme_payload, sector_filter)
-            filter_ok = _filter_ok(market_snapshot, theme_payload, sector_filter)
+            filter_ok = _filter_ok(
+                market_snapshot,
+                theme_payload,
+                sector_filter,
+                signal.signal_type,
+            )
 
             signal.factors.update(
                 {

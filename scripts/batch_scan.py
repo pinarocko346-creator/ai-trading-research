@@ -8,6 +8,7 @@ import yaml
 
 from app.data.market_context import MarketFilterConfig
 from app.data.sector_context import SectorFilterConfig
+from app.data.ingest import DataIngestConfig
 from app.data.universe import UniverseConfig
 from app.strategy.rules import RuleThresholds
 from app.strategy.scanner import ScanConfig, load_default_universe, scan_market
@@ -24,6 +25,10 @@ def main() -> None:
     config = yaml.safe_load((PROJECT_ROOT / "config" / "strategy_13_points.yaml").read_text(encoding="utf-8"))
     thresholds = RuleThresholds(**config["thresholds"])
     universe_config = UniverseConfig(**config["universe"])
+    ingest_config = DataIngestConfig(
+        cache_dir=PROJECT_ROOT / "data" / "cache",
+        **config.get("ingest", {}),
+    )
     market_filter = MarketFilterConfig(
         cache_dir=PROJECT_ROOT / "data" / "cache" / "market",
         **config.get("market_filter", {}),
@@ -32,7 +37,11 @@ def main() -> None:
         cache_dir=PROJECT_ROOT / "data" / "cache" / "sector",
         **config.get("sector_filter", {}),
     )
-    universe = load_default_universe(universe_config, max_symbols=args.max_symbols)
+    universe = load_default_universe(
+        universe_config,
+        max_symbols=args.max_symbols,
+        ingest_config=ingest_config,
+    )
     results = scan_market(
         universe,
         thresholds=thresholds,
@@ -40,6 +49,7 @@ def main() -> None:
         scan_config=ScanConfig(
             max_symbols=args.max_symbols,
             cache_dir=PROJECT_ROOT / "data" / "cache",
+            ingest_config=ingest_config,
             market_filter=market_filter,
             sector_filter=sector_filter,
         ),

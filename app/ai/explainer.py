@@ -108,6 +108,7 @@ def _format_signal_factors(factors: dict[str, object]) -> list[str]:
             }.get(str(value), value)
         if key == "sector_band":
             value = {
+                "crowded": "过热拥挤",
                 "strong": "强势主线",
                 "edge_high": "边缘活跃-高位",
                 "edge_low": "边缘活跃-低位",
@@ -199,7 +200,9 @@ def generate_ai_review(signal: ResearchSignal) -> str:
         positives.append("市场层处于中性区间，需要更精选地做主线个股")
     elif "market_ok" in factors:
         cautions.append("市场层环境偏弱，个股信号需要进一步降级看待")
-    if bool(factors.get("sector_ok", False)):
+    if sector_band == "crowded":
+        cautions.append("所属板块热度过高且拥挤，容易进入一致性兑现阶段")
+    elif bool(factors.get("sector_ok", False)):
         positives.append("所属行业或概念具备一定热度支持")
     elif sector_band == "edge_high":
         positives.append("所属板块处于边缘活跃高位区，可以保留继续跟踪")

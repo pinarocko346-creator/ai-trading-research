@@ -19,6 +19,14 @@ def _load_thresholds() -> RuleThresholds:
     return RuleThresholds(**config["thresholds"])
 
 
+def _load_ingest_config() -> DataIngestConfig:
+    config = yaml.safe_load((PROJECT_ROOT / "config" / "strategy_13_points.yaml").read_text(encoding="utf-8"))
+    return DataIngestConfig(
+        cache_dir=PROJECT_ROOT / "data" / "cache",
+        **config.get("ingest", {}),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="单票信号复核与可视化")
     parser.add_argument("symbol", help="A股代码，例如 600036")
@@ -28,7 +36,7 @@ def main() -> None:
     args = parser.parse_args()
 
     thresholds = _load_thresholds()
-    history = fetch_a_share_history(args.symbol, DataIngestConfig(cache_dir=PROJECT_ROOT / "data" / "cache"))
+    history = fetch_a_share_history(args.symbol, _load_ingest_config())
     if args.history:
         signals = scan_signal_history(
             history,

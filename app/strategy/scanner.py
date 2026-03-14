@@ -18,12 +18,32 @@ BREAKOUT_NORMALIZATION_PRIORITY = {
     "double_breakout": 1,
 }
 
+TREND_SIGNAL_TYPES = {
+    "double_breakout",
+    "jumping_creek",
+    "pullback_confirmation",
+    "n_breakout",
+    "support_resistance_flip",
+    "pattern_breakout",
+    "strength_emergence",
+}
+
+REVERSAL_SIGNAL_TYPES = {
+    "selling_climax",
+    "2b_structure",
+    "false_breakdown",
+    "right_shoulder",
+    "spring",
+    "first_rebound_after_crash",
+}
+
 
 @dataclass(slots=True)
 class ScanConfig:
     max_symbols: int = 100
     cache_dir: Path = Path("data/cache")
     per_signal_limit: int = 3
+    ingest_config: DataIngestConfig = field(default_factory=DataIngestConfig)
     market_filter: MarketFilterConfig = field(default_factory=MarketFilterConfig)
     sector_filter: SectorFilterConfig = field(default_factory=SectorFilterConfig)
     apply_market_filter: bool = True
@@ -42,21 +62,23 @@ def _market_score_adjustment(market_snapshot: dict[str, object]) -> float:
 
 def _sector_score_adjustment(theme_payload: dict[str, object], config: SectorFilterConfig) -> float:
     sector_score = float(theme_payload.get("sector_score", 0.0) or 0.0)
-    if sector_score >= config.min_sector_score + 10:
-        return 6.0
+    if sector_score >= config.crowded_min_score:
+        return -3.5
     if sector_score >= config.min_sector_score:
-        return 3.0
+        return 1.5
     if sector_score >= config.edge_high_min_score:
-        return 0.5
+        return 2.5
     if sector_score >= config.edge_low_min_score:
-        return -2.5
+        return 1.0
     if sector_score > 0:
-        return -4.0
-    return -6.0
+        return -1.5
+    return -4.0
 
 
 def _sector_band(theme_payload: dict[str, object], config: SectorFilterConfig) -> str:
     sector_score = float(theme_payload.get("sector_score", 0.0) or 0.0)
+    if sector_score >= config.crowded_min_score:
+        return "crowded"
     if sector_score >= config.min_sector_score:
         return "strong"
     if sector_score >= config.edge_high_min_score:
@@ -68,24 +90,40 @@ def _sector_band(theme_payload: dict[str, object], config: SectorFilterConfig) -
     return "none"
 
 
-def _filter_ok(market_snapshot: dict[str, object], theme_payload: dict[str, object], config: SectorFilterConfig) -> bool:
+def _filter_ok(
+    market_snapshot: dict[str, object],
+    theme_payload: dict[str, object],
+    config: SectorFilterConfig,
+    signal_type: str | None = None,
+) -> bool:
     regime = str(market_snapshot.get("market_regime", "neutral"))
     sector_band = _sector_band(theme_payload, config)
-    if regime == "risk_off":
-        return sector_band == "strong"
-    if regime == "risk_on":
+    if sector_band == "crowded":
+        return False
+    if signal_type in REVERSAL_SIGNAL_TYPES:
+        if regime == "risk_off":
+            return sector_band in {"edge_low", "weak"}
+        return sector_band in {"edge_high", "edge_low", "weak"}
+    if signal_type in TREND_SIGNAL_TYPES:
+        if regime == "risk_off":
+            return sector_band == "edge_high"
         return sector_band in {"strong", "edge_high"}
-    return sector_band in {"strong", "edge_high"}
+    if regime == "risk_off":
+        return sector_band in {"edge_high", "edge_low"}
+    if regime == "risk_on":
+        return sector_band in {"strong", "edge_high", "edge_low", "weak"}
+    return sector_band in {"strong", "edge_high", "edge_low"}
 
 
 def load_default_universe(
     universe_config: UniverseConfig | None = None,
     *,
     max_symbols: int = 100,
+    ingest_config: DataIngestConfig | None = None,
 ) -> pd.DataFrame:
     universe_config = universe_config or UniverseConfig()
-    spot = load_a_share_spot()
-    if "volume" in spot.columns:
+    spot = load_a_share_spot(ingest_config)
+    if "volume" in spot.columns and "avg_volume_20" not in spot.columns:
         spot["avg_volume_20"] = pd.to_numeric(spot["volume"], errors="coerce")
     filtered = filter_tradeable_universe(spot, universe_config)
     if "volume" in filtered.columns:
@@ -103,10 +141,10 @@ def scan_market(
 ) -> pd.DataFrame:
     thresholds = thresholds or RuleThresholds()
     scan_config = scan_config or ScanConfig()
-    ingest_config = DataIngestConfig(cache_dir=scan_config.cache_dir)
+    ingest_config = scan_config.ingest_config
     signal_names = {item.code: item.name for item in build_signal_catalog()}
     results: list[dict[str, object]] = []
-    full_spot = load_a_share_spot()
+    full_spot = load_a_share_spot(ingest_config)
     market_snapshot = load_market_snapshot(scan_config.market_filter, spot_frame=full_spot)
     sector_snapshot = load_sector_snapshot(scan_config.sector_filter)
 
@@ -155,7 +193,12 @@ def scan_market(
             payload["concept_names"] = theme_payload["concept_names"]
             payload["concept_scores"] = theme_payload["concept_scores"]
             payload["sector_band"] = sector_band
-            payload["filter_ok"] = _filter_ok(market_snapshot, theme_payload, scan_config.sector_filter)
+            payload["filter_ok"] = _filter_ok(
+                market_snapshot,
+                theme_payload,
+                scan_config.sector_filter,
+                signal.signal_type,
+            )
             results.append(payload)
 
     frame = pd.DataFrame(results)
