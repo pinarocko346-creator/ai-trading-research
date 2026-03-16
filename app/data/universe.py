@@ -70,7 +70,19 @@ def _load_sqlite_spot(config: DataIngestConfig) -> pd.DataFrame:
         .mean()
         .rename(columns={"volume": "avg_volume_20"})
     )
+    recent_turnover = (
+        frame.assign(turnover_recent=frame["turnover_rate"].where(frame["turnover_rate"] > 0))
+        .groupby("symbol", as_index=False)["turnover_recent"]
+        .agg(lambda series: series.dropna().iloc[-1] if not series.dropna().empty else 0.0)
+        .rename(columns={"turnover_recent": "recent_turnover_rate"})
+    )
     latest = latest.merge(avg_volume, on="symbol", how="left")
+    latest = latest.merge(recent_turnover, on="symbol", how="left")
+    latest["turnover_rate"] = latest["turnover_rate"].where(
+        latest["turnover_rate"] > 0,
+        latest["recent_turnover_rate"],
+    )
+    latest["turnover_rate"] = latest["turnover_rate"].fillna(0.0)
     return latest[["symbol", "name", "close", "volume", "avg_volume_20", "turnover_rate", "pct_chg"]].reset_index(drop=True)
 
 

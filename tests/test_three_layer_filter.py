@@ -109,6 +109,23 @@ class ThreeLayerFilterTests(unittest.TestCase):
         self.assertTrue(edge_high_allowed)
         self.assertFalse(edge_low_blocked)
 
+    def test_filter_ok_treats_cup_with_handle_as_trend_signal(self) -> None:
+        config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
+        strong_allowed = _filter_ok(
+            {"market_regime": "neutral", "market_score": 60.0},
+            {"sector_score": 55.0},
+            config,
+            "cup_with_handle",
+        )
+        weak_blocked = _filter_ok(
+            {"market_regime": "neutral", "market_score": 60.0},
+            {"sector_score": 20.0},
+            config,
+            "cup_with_handle",
+        )
+        self.assertTrue(strong_allowed)
+        self.assertFalse(weak_blocked)
+
     def test_sector_band_marks_crowded_and_edge_zones(self) -> None:
         config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)
         crowded_band = _sector_band({"sector_score": 68.0}, config)

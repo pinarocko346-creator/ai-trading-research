@@ -68,10 +68,14 @@ def run_signal_backtest(
         exit_price = float(entry_bar["close"])
         exit_date = entry_bar["date"].date()
         exit_reason = "time_exit"
+        max_high = float(entry_bar["high"])
+        min_low = float(entry_bar["low"])
 
         lookahead = prepared.iloc[signal_index + 1 : signal_index + 1 + config.max_hold_days]
         for _, bar in lookahead.iterrows():
             exit_date = bar["date"].date()
+            max_high = max(max_high, float(bar["high"]))
+            min_low = min(min_low, float(bar["low"]))
             if bar["low"] <= stop_price:
                 exit_price = stop_price
                 exit_reason = "stop_loss"
@@ -89,6 +93,7 @@ def run_signal_backtest(
             BacktestTrade(
                 symbol=signal.symbol,
                 signal_type=signal.signal_type,
+                signal_date=signal.signal_date,
                 entry_date=entry_bar["date"].date(),
                 exit_date=exit_date,
                 entry_price=entry_price,
@@ -97,6 +102,8 @@ def run_signal_backtest(
                 hold_days=max((exit_date - entry_bar["date"].date()).days, 1),
                 exit_reason=exit_reason,
                 confidence_score=signal.confidence_score,
+                mfe_pct=round((max_high - entry_price) / entry_price, 4),
+                mae_pct=round((min_low - entry_price) / entry_price, 4),
             )
         )
     return trades

@@ -89,6 +89,34 @@ class ExplainerTests(unittest.TestCase):
         self.assertIn("过热拥挤", summary)
         self.assertIn("所属板块热度过高且拥挤", review)
 
+    def test_quality_fields_render_in_signal_and_review(self) -> None:
+        signal = ResearchSignal(
+            signal_type="cup_with_handle",
+            symbol="000004",
+            signal_date=date(2026, 3, 14),
+            confidence_score=96,
+            trend_ok=True,
+            location_ok=True,
+            pattern_ok=True,
+            volume_ok=True,
+            factors={
+                "left_peak": 12.2,
+                "cup_low": 10.8,
+                "right_peak": 12.05,
+                "quality_score": 78.0,
+                "quality_bucket": "high",
+                "pretty_ok": True,
+            },
+        )
+
+        summary = explain_signal(signal)
+        review = generate_ai_review(signal)
+
+        self.assertIn("杯子与杯柄", summary)
+        self.assertIn("- 漂亮度分：78", summary)
+        self.assertIn("- 漂亮度通过：是", summary)
+        self.assertIn("形态漂亮度通过统一过滤", review)
+
 
 if __name__ == "__main__":
     unittest.main()

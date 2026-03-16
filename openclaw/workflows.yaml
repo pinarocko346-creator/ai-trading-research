@@ -1,0 +1,113 @@
+version: 1
+description: OpenClaw 多 Agent 的两条基础协作链路
+
+workflows:
+  quick_brief:
+    name: 日更快讯流
+    use_cases:
+      - 盘前重点
+      - 午盘简报
+      - 盘后总结
+      - 突发消息快评
+    target_outputs:
+      - L1
+      - L2
+      - L4
+    pipeline:
+      - step: 1
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 判断主题、市场范围、目标平台和输出层级
+        deliverable: 任务拆解单
+      - step: 2
+        role_id: market_scanner
+        role_name: 市场扫描员
+        action: 提炼指数、板块、异动标的、事件日历和优先观察项
+        deliverable: 热点清单与标的优先级
+      - step: 3
+        role_id: news_sentiment
+        role_name: 新闻情绪研究员
+        action: 补充新闻叙事、情绪温度、市场共识与分歧
+        deliverable: 新闻与情绪摘要
+      - step: 4
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 汇总为 3 到 5 个核心观察，不追求面面俱到
+        deliverable: 统一观点底稿
+      - step: 5
+        role_id: content_writer
+        role_name: 内容写手
+        action: 生成快讯、短评或短视频口播稿
+        deliverable: 发布初稿
+      - step: 6
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 做事实核对、去绝对化表述、补风险点
+        deliverable: 发布终稿
+    success_criteria:
+      - 能在短时间内产出
+      - 重点明确，不堆信息
+      - 事实和判断分开
+
+  deep_research:
+    name: 深度研究流
+    use_cases:
+      - 行业拆解
+      - 个股深挖
+      - 财报复盘
+      - 政策影响分析
+    target_outputs:
+      - L2
+      - L3
+      - L4
+    pipeline:
+      - step: 1
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 明确选题、用户画像、篇幅、想回答的问题和禁止事项
+        deliverable: 研究任务书
+      - step: 2
+        role_id: fundamental_analyst
+        role_name: 基本面研究员
+        action: 输出基本面底稿，包括业务、财报、估值、催化和风险
+        deliverable: 基本面研究底稿
+      - step: 3
+        role_id: news_sentiment
+        role_name: 新闻情绪研究员
+        action: 输出市场叙事、新闻催化、情绪温度和误读点
+        deliverable: 新闻与叙事底稿
+      - step: 4
+        role_id: market_scanner
+        role_name: 市场扫描员
+        action: 提供该主题在当前市场中的位置、对标标的和阶段热度
+        deliverable: 市场位置说明
+      - step: 5
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 合并多方输入，形成主结论、反例、失效条件和观察指标
+        deliverable: 统一观点底稿
+      - step: 6
+        role_id: content_writer
+        role_name: 内容写手
+        action: 生成长文、视频脚本或可拆条素材
+        deliverable: 内容初稿
+      - step: 7
+        role_id: chief_editor
+        role_name: 总控主编
+        action: 做最终审校和平台化改写
+        deliverable: 成品内容
+    success_criteria:
+      - 观点链条完整
+      - 能解释为什么现在值得关注
+      - 既有支持证据，也有反方约束
+
+upgrade_path:
+  when_to_upgrade:
+    - 日更内容经常因为数字错误返工
+    - 深度内容常出现单边叙事
+    - 需要增加技术面或交易结构判断
+  add_roles:
+    - 技术面分析师
+    - 多空辩论员
+    - 事实核查员
+    - 合规编辑

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -18,6 +19,7 @@ from app.strategy.scanner import _filter_ok, _sector_band, load_default_universe
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+BOARD_HISTORY_FETCH_DISABLED = False
 
 
 def _import_akshare():
@@ -85,18 +87,30 @@ def _fetch_board_history(
     end_date: str,
     cache_dir: Path,
 ) -> pd.DataFrame:
+    global BOARD_HISTORY_FETCH_DISABLED
     cache_file = _board_cache_path(kind, board_name, cache_dir)
     if cache_file.exists():
         return pd.read_parquet(cache_file)
+    if BOARD_HISTORY_FETCH_DISABLED:
+        return pd.DataFrame(columns=["date", "hist_score"])
 
     ak = _import_akshare()
-    if kind == "industry":
-        raw = ak.stock_board_industry_hist_em(symbol=board_name, start_date=start_date, end_date=end_date)
-    else:
-        raw = ak.stock_board_concept_hist_em(symbol=board_name, start_date=start_date, end_date=end_date)
-    normalized = _normalize_board_history(raw)
-    normalized.to_parquet(cache_file, index=False)
-    return normalized
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            if kind == "industry":
+                raw = ak.stock_board_industry_hist_em(symbol=board_name, start_date=start_date, end_date=end_date)
+            else:
+                raw = ak.stock_board_concept_hist_em(symbol=board_name, start_date=start_date, end_date=end_date)
+            normalized = _normalize_board_history(raw)
+            normalized.to_parquet(cache_file, index=False)
+            return normalized
+        except Exception as exc:  # pragma: no cover - depends on flaky network
+            last_error = exc
+            time.sleep(1 + attempt)
+    BOARD_HISTORY_FETCH_DISABLED = True
+    print(f"warning: 无法获取 {kind} 板块历史 {board_name}: {last_error}")
+    return pd.DataFrame(columns=["date", "hist_score"])
 
 
 def _latest_board_score(history: pd.DataFrame | None, signal_date: pd.Timestamp) -> float:

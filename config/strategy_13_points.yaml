@@ -7,6 +7,7 @@ signals:
     - double_breakout
     - strength_emergence
     - jumping_creek
+    - cup_with_handle
     - pullback_confirmation
     - n_breakout
     - support_resistance_flip
@@ -34,11 +35,26 @@ thresholds:
   double_breakout_lookback: 20
   double_breakout_high_lookback: 10
   double_breakout_close_to_high_pct: 0.99
-  double_breakout_min_volume_ratio: 1.05
+  double_breakout_min_volume_ratio: 1.3
+  double_breakout_min_body_pct: 0.02
+  double_breakout_min_close_in_range: 0.8
+  double_breakout_prior_below_bars: 3
+  double_breakout_prior_below_tolerance_pct: 0.003
+  double_breakout_min_breakout_pct: 0.01
+  double_breakout_prep_tight_range_pct: 0.12
   climax_volume_ratio: 1.8
   climax_drawdown_pct: 0.12
+  climax_reversal_min_body_pct: 0.015
+  climax_reversal_min_close_in_range: 0.6
+  climax_reversal_min_volume_ratio: 1.0
+  climax_reversal_reclaim_pct: 0.01
+  climax_max_reversal_bars: 3
   swing_lookback: 40
   false_break_volume_ratio: 0.9
+  false_break_reclaim_min_volume_ratio: 1.15
+  false_break_min_close_in_range: 0.7
+  false_break_min_reclaim_pct: 0.003
+  false_break_min_break_pct: 0.003
   range_lookback: 30
   box_tight_pct: 0.18
   strength_midline_buffer_pct: 0.01
@@ -47,12 +63,39 @@ thresholds:
   strength_recent_above_midline_bars: 4
   creek_lookback: 40
   creek_breakout_pct: 0.015
-  creek_min_volume_ratio: 1.8
+  creek_min_volume_ratio: 2.2
   creek_min_body_pct: 0.025
   creek_min_range_atr_ratio: 0.9
-  creek_prior_below_bars: 3
+  creek_min_close_in_range: 0.82
+  creek_prep_tight_range_pct: 0.08
+  creek_prior_below_bars: 4
   creek_prior_below_tolerance_pct: 0.005
+  creek_min_breakout_pct: 0.02
+  cup_base_lookback: 55
+  cup_base_min_bars: 28
+  cup_prior_trend_lookback: 20
+  cup_prior_uptrend_min_pct: 0.12
+  cup_min_depth_pct: 0.12
+  cup_max_depth_pct: 0.32
+  cup_min_side_bars: 8
+  cup_min_recovery_pct: 0.95
+  cup_min_symmetry_ratio: 0.45
+  cup_handle_min_bars: 3
+  cup_handle_max_bars: 8
+  cup_handle_max_depth_pct: 0.08
+  cup_handle_max_range_pct: 0.1
+  cup_handle_min_position_pct: 0.6
+  cup_handle_max_volume_dryup_ratio: 0.9
+  cup_breakout_pct: 0.01
+  cup_breakout_min_body_pct: 0.018
+  cup_breakout_min_close_in_range: 0.82
+  cup_breakout_min_volume_ratio: 1.3
   n_breakout_pullback_window: 15
+  n_breakout_min_volume_ratio: 1.05
+  n_breakout_min_close_in_range: 0.65
+  n_breakout_rebreak_buffer_pct: 0.003
+  n_breakout_min_pullback_bars: 2
+  n_breakout_max_pullback_bars: 10
   support_flip_lookback: 30
   spring_break_pct: 0.01
   pattern_lookback: 30
@@ -69,12 +112,13 @@ thresholds:
   two_b_prior_low_min_age: 5
   two_b_close_above_break_bar: true
   two_b_reclaim_close_in_upper_half: true
-  false_break_break_pct: 0.001
+  false_break_break_pct: 0.002
   false_break_reclaim_bars: 3
   false_break_reclaim_tolerance_pct: 0.003
-  false_break_min_body_pct: 0.003
+  false_break_min_body_pct: 0.006
   false_break_prior_low_min_age: 3
   false_break_close_in_upper_half: true
+  false_break_close_above_break_bar: true
   right_shoulder_similarity_pct: 0.08
   right_shoulder_bounce_pct: 0.015
   right_shoulder_signal_bars_from_low: 5
@@ -91,6 +135,10 @@ research_universe:
   min_turnover_rate: 0.1
   exclude_st: true
   exclude_beijing: false
+scan:
+  per_signal_limit: 3
+  pretty_min_quality_score: 60.0
+  pretty_hard_filter_score: 55.0
 market_filter:
   index_symbols:
     上证指数: "000001"

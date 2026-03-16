@@ -225,6 +225,78 @@ def _synthetic_pattern_breakout_frame() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _synthetic_false_break_frame_shallow_break() -> pd.DataFrame:
+    frame = _synthetic_false_break_frame().copy()
+    frame.loc[len(frame) - 3, "low"] = 8.21
+    frame.loc[len(frame) - 2, "low"] = 8.21
+    return frame
+
+
+def _synthetic_breakout_frame_loose_setup() -> pd.DataFrame:
+    frame = _synthetic_breakout_frame().copy()
+    frame.loc[len(frame) - 2, "high"] = round(frame.loc[len(frame) - 2, "high"] * 1.08, 2)
+    frame.loc[len(frame) - 2, "low"] = round(frame.loc[len(frame) - 2, "low"] * 0.92, 2)
+    return frame
+
+
+def _synthetic_jumping_creek_frame_weak_break() -> pd.DataFrame:
+    frame = _synthetic_jumping_creek_frame().copy()
+    last_index = len(frame) - 1
+    frame.loc[last_index, "close"] = 14.0
+    frame.loc[last_index, "high"] = 14.6
+    frame.loc[last_index, "low"] = 13.72
+    frame.loc[last_index, "open"] = 13.88
+    return frame
+
+
+def _synthetic_cup_with_handle_frame() -> pd.DataFrame:
+    closes = [6.0 + 0.04 * index for index in range(45)] + [8.0 + 0.06 * index for index in range(35)] + [
+        10.6, 10.45, 10.3, 10.1, 9.9, 9.7, 9.55, 9.4, 9.3, 9.22, 9.18, 9.15,
+        9.18, 9.24, 9.32, 9.45, 9.6, 9.78, 9.95, 10.12, 10.25, 10.35, 10.42, 10.5,
+        10.55, 10.58, 10.48, 10.42, 10.36, 10.4, 10.45, 10.95,
+    ]
+    rows = []
+    last_index = len(closes) - 1
+    for index, close in enumerate(closes):
+        if index == last_index:
+            open_price = 10.55
+            high = 11.02
+            low = 10.52
+            volume = 5_200_000
+        elif index >= last_index - 5:
+            open_price = close * 0.998
+            high = close * 1.006
+            low = close * 0.992
+            volume = 1_600_000
+        else:
+            open_price = close * 0.996
+            high = close * 1.01
+            low = close * 0.99
+            volume = 2_400_000
+        rows.append(
+            {
+                "date": pd.Timestamp("2024-01-01") + pd.Timedelta(days=index),
+                "open": round(open_price, 2),
+                "high": round(high, 2),
+                "low": round(low, 2),
+                "close": round(close, 2),
+                "volume": volume,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _synthetic_cup_with_handle_frame_deep_handle() -> pd.DataFrame:
+    frame = _synthetic_cup_with_handle_frame().copy()
+    handle_indices = list(range(len(frame) - 6, len(frame) - 1))
+    frame.loc[handle_indices, "close"] = [10.2, 9.95, 9.82, 9.9, 9.96]
+    frame.loc[handle_indices, "open"] = [10.28, 10.05, 9.9, 9.92, 9.98]
+    frame.loc[handle_indices, "high"] = [10.3, 10.08, 9.95, 10.0, 10.02]
+    frame.loc[handle_indices, "low"] = [10.05, 9.82, 9.68, 9.8, 9.9]
+    frame.loc[handle_indices, "volume"] = [2_800_000, 2_900_000, 3_000_000, 2_850_000, 2_900_000]
+    return frame
+
+
 class RuleTests(unittest.TestCase):
     def test_scan_signals_returns_known_signal_types(self) -> None:
         frame = build_price_features(_synthetic_breakout_frame())
@@ -262,6 +334,17 @@ class RuleTests(unittest.TestCase):
         self.assertTrue(signals)
         self.assertEqual(signals[0].signal_type, "false_breakdown")
 
+    def test_false_breakdown_requires_meaningful_break_depth(self) -> None:
+        frame = build_price_features(_synthetic_false_break_frame_shallow_break())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["false_breakdown"],
+            thresholds=RuleThresholds(swing_lookback=20),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
     def test_detects_right_shoulder_on_recent_bounce(self) -> None:
         frame = build_price_features(_synthetic_right_shoulder_frame())
         signals = scan_signals(
@@ -297,6 +380,51 @@ class RuleTests(unittest.TestCase):
         )
         self.assertTrue(signals)
         self.assertEqual(signals[0].signal_type, "jumping_creek")
+
+    def test_jumping_creek_rejects_weak_breakout_close(self) -> None:
+        frame = _synthetic_jumping_creek_frame_weak_break()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["jumping_creek"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_detects_cup_with_handle_on_classic_breakout(self) -> None:
+        frame = _synthetic_cup_with_handle_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "cup_with_handle")
+
+    def test_cup_with_handle_rejects_deep_handle(self) -> None:
+        frame = _synthetic_cup_with_handle_frame_deep_handle()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_double_breakout_requires_tight_pre_breakout_setup(self) -> None:
+        frame = build_price_features(_synthetic_breakout_frame_loose_setup())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["double_breakout"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
 
     def test_detects_pattern_breakout_on_box_escape(self) -> None:
         frame = _synthetic_pattern_breakout_frame()

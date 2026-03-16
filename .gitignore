@@ -10,6 +10,11 @@ env/
 
 # Data cache (large, regenerable)
 data/cache/
+reports/openclaw_daily/
+reports/openclaw_smoke/
+reports/openclaw_*/
+reports/scans/
+reports/validation/
 
 # IDE
 .idea/

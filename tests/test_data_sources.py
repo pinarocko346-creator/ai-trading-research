@@ -65,7 +65,7 @@ class SQLiteDataSourceTests(unittest.TestCase):
                     ("000001", "2026-03-12", 10.1, 10.5, 10.0, 10.4, 2000, 20800, 2.0, 2.97, 0.3, 1.5),
                     ("000001", "2026-03-13", 10.4, 10.8, 10.3, 10.7, 3000, 32100, 2.5, 2.88, 0.3, 1.8),
                     ("000002", "2026-03-12", 8.0, 8.2, 7.9, 8.1, 500, 4050, 1.5, 1.25, 0.1, 0.6),
-                    ("000002", "2026-03-13", 8.1, 8.4, 8.0, 8.3, 700, 5810, 2.0, 2.47, 0.2, 0.7),
+                    ("000002", "2026-03-13", 8.1, 8.4, 8.0, 8.3, 700, 5810, 2.0, 2.47, 0.2, 0.0),
                     ("000003", "2026-03-11", 4.0, 4.1, 3.9, 4.0, 5000, 20000, 1.0, 0.0, 0.0, 2.0),
                     ("000003", "2026-03-12", 4.0, 4.2, 3.95, 4.1, 6000, 24600, 2.0, 2.5, 0.1, 2.1),
                     ("000003", "2026-03-13", 4.1, 4.3, 4.0, 4.2, 7000, 29400, 2.5, 2.44, 0.1, 2.2),
@@ -103,6 +103,7 @@ class SQLiteDataSourceTests(unittest.TestCase):
         self.assertAlmostEqual(row["close"], 10.7)
         self.assertAlmostEqual(row["avg_volume_20"], 2000.0)
         self.assertAlmostEqual(row["pct_chg"], 2.88)
+        self.assertAlmostEqual(spot.set_index("symbol").loc["000002"]["turnover_rate"], 0.6)
 
         universe = load_default_universe(
             UniverseConfig(min_close=3.0, min_avg_volume=600.0, min_turnover_rate=0.5, exclude_st=True),

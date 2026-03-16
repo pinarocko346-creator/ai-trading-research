@@ -1,0 +1,104 @@
+version: 1
+purpose: 多 Agent 之间的统一输入输出交接格式
+
+input_template:
+  task_id: unique-task-id
+  workflow_type: quick_brief_or_deep_research
+  objective: >
+    明确这轮任务要解决什么问题，例如生成今晚盘前重点、拆解一家公司财报、
+    产出 90 秒视频脚本。
+  market_scope:
+    - a_share
+    - us_equity
+  symbols:
+    - NVDA
+    - TSLA
+    - 600036
+  sectors:
+    - 半导体
+    - 券商
+  time_window: 最近1日/最近1周/最近1季/最近1年
+  audience: 交易型用户/研究型用户/普通投资者/内容粉丝
+  content_level: L1_or_L2_or_L3_or_L4
+  output_format: markdown_or_json_or_bullets
+  must_cover:
+    - 关键结论
+    - 证据
+    - 风险点
+  forbidden:
+    - 虚构数据
+    - 虚构来源
+    - 无条件下结论
+  source_materials:
+    - file: reports/openclaw_daily/latest/manifest.json
+      usage: A股结构化摘要
+    - file: reports/openclaw_daily/latest/daily_report.md
+      usage: A股候选解读
+    - file: external_news_digest
+      usage: 美股或宏观新闻输入
+
+output_template:
+  role_id: chief_editor
+  role_name: 总控主编
+  task_id: unique-task-id
+  verdict_summary:
+    - 一句话结论
+    - 两到三个关键判断
+  facts:
+    - 可验证事实1
+    - 可验证事实2
+  interpretations:
+    - 对事实的解释1
+    - 对事实的解释2
+  forecasts:
+    - 条件性判断1
+    - 条件性判断2
+  evidence:
+    - 来自结构化文件、公告、财报或新闻的支撑证据
+  uncertainty:
+    - 信息缺口
+    - 数据滞后
+    - 尚未验证的假设
+  invalidation_conditions:
+    - 如果什么条件出现，当前结论失效
+  downstream_questions:
+    - 交给下一个 Agent 的问题1
+    - 交给下一个 Agent 的问题2
+  quotable_lines:
+    - 可直接引用到正文的句子1
+    - 可直接引用到正文的句子2
+  publish_ready: false
+
+hard_rules:
+  - 所有 Agent 必须同时输出 facts、interpretations、forecasts 三段
+  - facts 只能写能被输入材料直接支持的信息
+  - forecasts 必须附带前提条件
+  - uncertainty 不能为空，没有把握时必须明确说明
+  - 任何面向公众发布的内容都要保留风险点
+
+role_specific_focus:
+  chief_editor:
+    emphasize:
+      - 任务拆解
+      - 综合判断
+      - 终稿质量
+  market_scanner:
+    emphasize:
+      - 事件排序
+      - 标的优先级
+      - 快速摘要
+  fundamental_analyst:
+    emphasize:
+      - 驱动因子
+      - 财报口径
+      - 估值与政策
+  news_sentiment:
+    emphasize:
+      - 情绪温度
+      - 共识与分歧
+      - 消息源强弱
+  content_writer:
+    emphasize:
+      - 可读性
+      - 平台适配
+      - 不新增未经验证事实

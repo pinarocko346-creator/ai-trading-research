@@ -14,6 +14,7 @@ SIGNAL_LABELS = {
     "double_breakout": "双突破",
     "strength_emergence": "强势出现",
     "jumping_creek": "跳跃小溪",
+    "cup_with_handle": "杯子与杯柄",
     "pullback_confirmation": "回抽确认",
     "n_breakout": "N字突破",
     "support_resistance_flip": "支撑压力互换",
@@ -54,9 +55,21 @@ FACTOR_LABELS = {
     "close_to_high_pct": "距高点比例",
     "closes_above_midline": "近阶段中轴上方收盘数",
     "resistance": "阻力位",
+    "left_peak": "左杯沿",
+    "cup_low": "杯底",
+    "right_peak": "右杯沿",
     "breakout_pct": "突破幅度",
     "range_atr_ratio": "波动/ATR",
     "prior_below_resistance": "突破前压制成立",
+    "cup_depth_pct": "杯体深度",
+    "right_peak_recovery_pct": "右侧回升接近前高比例",
+    "handle_depth_pct": "杯柄深度",
+    "handle_range_pct": "杯柄波动范围",
+    "handle_low_position_pct": "杯柄位置占比",
+    "handle_bars": "杯柄K线数",
+    "handle_volume_dryup_ratio": "杯柄缩量比",
+    "symmetry_ratio": "杯体对称度",
+    "prior_uptrend_pct": "前置上涨幅度",
     "pullback_low": "回踩低点",
     "first_break_date": "首次突破日",
     "prior_high": "前高",
@@ -81,6 +94,10 @@ FACTOR_LABELS = {
     "industry_score": "行业强度分",
     "concept_names": "相关概念",
     "concept_scores": "概念强度分",
+    "filter_ok": "三层滤网通过",
+    "quality_score": "漂亮度分",
+    "quality_bucket": "漂亮度分层",
+    "pretty_ok": "漂亮度通过",
 }
 
 
@@ -212,9 +229,15 @@ def generate_ai_review(signal: ResearchSignal) -> str:
         cautions.append("板块热度处于边缘区，最好再等个股确认")
     elif "sector_ok" in factors:
         cautions.append("板块/概念支持度一般")
+    quality_score = float(factors.get("quality_score", 0.0) or 0.0)
+    if "pretty_ok" in factors:
+        if bool(factors.get("pretty_ok", False)):
+            positives.append(f"形态漂亮度通过统一过滤，当前漂亮度分约为 {quality_score:.1f}")
+        else:
+            cautions.append(f"形态漂亮度未通过统一过滤，当前漂亮度分约为 {quality_score:.1f}")
     extra = _format_reference_pairs(
         factors,
-        ("prior_support", "breakout_level", "flip_level", "neckline", "resistance", "box_high", "box_low"),
+        ("prior_support", "breakout_level", "flip_level", "neckline", "resistance", "box_high", "box_low", "left_peak", "cup_low", "right_peak"),
     )
 
     lines = [

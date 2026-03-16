@@ -13,6 +13,7 @@ from app.strategy.rules import RuleThresholds, build_signal_catalog, scan_signal
 from app.strategy.scoring import rank_signals, score_signal
 
 BREAKOUT_NORMALIZATION_PRIORITY = {
+    "cup_with_handle": 4,
     "jumping_creek": 3,
     "n_breakout": 2,
     "double_breakout": 1,
@@ -21,6 +22,7 @@ BREAKOUT_NORMALIZATION_PRIORITY = {
 TREND_SIGNAL_TYPES = {
     "double_breakout",
     "jumping_creek",
+    "cup_with_handle",
     "pullback_confirmation",
     "n_breakout",
     "support_resistance_flip",
@@ -37,12 +39,30 @@ REVERSAL_SIGNAL_TYPES = {
     "first_rebound_after_crash",
 }
 
+CANDIDATE_DISABLED_SIGNAL_TYPES = {
+    "selling_climax",
+    "pullback_confirmation",
+}
+
+CANDIDATE_FILTER_REQUIRED_SIGNAL_TYPES = {
+    "double_breakout",
+    "jumping_creek",
+    "n_breakout",
+}
+
+CANDIDATE_SIGNAL_LIMITS = {
+    "jumping_creek": 1,
+    "n_breakout": 1,
+}
+
 
 @dataclass(slots=True)
 class ScanConfig:
     max_symbols: int = 100
     cache_dir: Path = Path("data/cache")
     per_signal_limit: int = 3
+    pretty_min_quality_score: float = 60.0
+    pretty_hard_filter_score: float = 55.0
     ingest_config: DataIngestConfig = field(default_factory=DataIngestConfig)
     market_filter: MarketFilterConfig = field(default_factory=MarketFilterConfig)
     sector_filter: SectorFilterConfig = field(default_factory=SectorFilterConfig)
@@ -115,10 +135,159 @@ def _filter_ok(
     return sector_band in {"strong", "edge_high", "edge_low"}
 
 
+def _numeric_factor(signal, key: str) -> float | None:
+    value = signal.factors.get(key)
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def score_signal_quality(signal) -> float:
+    score = 12.0
+    score += {
+        "false_breakdown": 4.0,
+        "2b_structure": 3.0,
+        "right_shoulder": 4.0,
+        "support_resistance_flip": 4.0,
+        "strength_emergence": 4.0,
+        "pattern_breakout": 2.0,
+        "first_rebound_after_crash": 2.0,
+        "spring": 2.0,
+        "cup_with_handle": 6.0,
+        "pullback_confirmation": -6.0,
+        "n_breakout": -12.0,
+        "double_breakout": -18.0,
+        "jumping_creek": -20.0,
+        "selling_climax": -18.0,
+    }.get(signal.signal_type, 0.0)
+    score += 10.0 if signal.trend_ok else -10.0
+    score += 10.0 if signal.location_ok else -10.0
+    score += 12.0 if signal.pattern_ok else -12.0
+    score += 8.0 if signal.volume_ok else -10.0
+
+    volume_ratio = _numeric_factor(signal, "volume_ratio")
+    if volume_ratio is not None:
+        if volume_ratio >= 2.0:
+            score += 6.0
+        elif volume_ratio >= 1.3:
+            score += 4.0
+        elif volume_ratio >= 1.0:
+            score += 2.0
+        else:
+            score -= 4.0
+
+    close_in_range = _numeric_factor(signal, "close_in_range")
+    if close_in_range is not None:
+        if close_in_range >= 0.85:
+            score += 5.0
+        elif close_in_range >= 0.7:
+            score += 2.5
+        elif close_in_range < 0.55:
+            score -= 5.0
+
+    breakout_pct = _numeric_factor(signal, "breakout_pct")
+    if breakout_pct is not None:
+        if breakout_pct >= 0.04:
+            score += 5.0
+        elif breakout_pct >= 0.015:
+            score += 3.0
+        elif breakout_pct < 0.008:
+            score -= 4.0
+
+    if signal.factors.get("prep_tight") is True:
+        score += 3.0
+    if signal.factors.get("prior_below_resistance") is True or signal.factors.get("prior_below_breakout") is True:
+        score += 3.0
+    if signal.factors.get("prior_below_box") is True:
+        score += 2.0
+    if signal.factors.get("reclaim_in_time") is True:
+        score += 2.0
+
+    if signal.signal_type == "cup_with_handle":
+        handle_depth_pct = _numeric_factor(signal, "handle_depth_pct")
+        if handle_depth_pct is not None:
+            if handle_depth_pct <= 0.06:
+                score += 6.0
+            elif handle_depth_pct <= 0.1:
+                score += 3.0
+            else:
+                score -= 8.0
+        handle_volume_dryup_ratio = _numeric_factor(signal, "handle_volume_dryup_ratio")
+        if handle_volume_dryup_ratio is not None:
+            if handle_volume_dryup_ratio <= 0.85:
+                score += 5.0
+            elif handle_volume_dryup_ratio <= 1.0:
+                score += 2.0
+            else:
+                score -= 5.0
+        right_peak_recovery_pct = _numeric_factor(signal, "right_peak_recovery_pct")
+        if right_peak_recovery_pct is not None:
+            if right_peak_recovery_pct >= 0.97:
+                score += 4.0
+            elif right_peak_recovery_pct < 0.93:
+                score -= 5.0
+        handle_low_position_pct = _numeric_factor(signal, "handle_low_position_pct")
+        if handle_low_position_pct is not None:
+            if handle_low_position_pct >= 0.65:
+                score += 4.0
+            elif handle_low_position_pct < 0.55:
+                score -= 6.0
+    elif signal.signal_type in {"double_breakout", "jumping_creek", "n_breakout", "pattern_breakout"}:
+        if signal.factors.get("prep_tight") is False:
+            score -= 4.0
+    elif signal.signal_type in {"false_breakdown", "2b_structure", "spring"}:
+        break_pct = _numeric_factor(signal, "break_pct")
+        if break_pct is not None:
+            if break_pct >= 0.015:
+                score += 4.0
+            elif break_pct < 0.005:
+                score -= 4.0
+    elif signal.signal_type == "first_rebound_after_crash":
+        crash_drop_pct = _numeric_factor(signal, "crash_drop_pct")
+        if crash_drop_pct is not None:
+            if crash_drop_pct <= -0.1:
+                score += 4.0
+            elif crash_drop_pct > -0.08:
+                score -= 4.0
+
+    return round(max(0.0, min(100.0, score)), 2)
+
+
+def quality_bucket_label(
+    quality_score: float,
+    *,
+    pretty_min_quality_score: float = 60.0,
+    pretty_hard_filter_score: float = 55.0,
+) -> str:
+    if quality_score >= pretty_min_quality_score:
+        return "high"
+    if quality_score >= pretty_hard_filter_score:
+        return "medium"
+    return "low"
+
+
+def pretty_signal_ok(quality_score: float, *, pretty_hard_filter_score: float = 55.0) -> bool:
+    return quality_score >= pretty_hard_filter_score
+
+
+def _candidate_signal_allowed(row: pd.Series) -> bool:
+    signal_type = str(row.get("signal_type", "") or "")
+    if signal_type in CANDIDATE_DISABLED_SIGNAL_TYPES:
+        return False
+    if signal_type in CANDIDATE_FILTER_REQUIRED_SIGNAL_TYPES:
+        if "filter_ok" not in row.index or pd.isna(row.get("filter_ok")):
+            return True
+        return bool(row.get("filter_ok", False))
+    return True
+
+
 def load_default_universe(
     universe_config: UniverseConfig | None = None,
     *,
-    max_symbols: int = 100,
+    max_symbols: int | None = 100,
     ingest_config: DataIngestConfig | None = None,
 ) -> pd.DataFrame:
     universe_config = universe_config or UniverseConfig()
@@ -129,6 +298,8 @@ def load_default_universe(
     if "volume" in filtered.columns:
         filtered["volume"] = pd.to_numeric(filtered["volume"], errors="coerce")
         filtered = filtered.sort_values("volume", ascending=False)
+    if max_symbols is None or max_symbols <= 0:
+        return filtered.reset_index(drop=True)
     return filtered.head(max_symbols).reset_index(drop=True)
 
 
@@ -165,6 +336,16 @@ def scan_market(
             theme_payload = build_symbol_theme_payload(symbol, sector_snapshot, scan_config.sector_filter)
             payload = signal.to_dict()
             base_score = score_signal(signal)
+            quality_score = score_signal_quality(signal)
+            quality_bucket = quality_bucket_label(
+                quality_score,
+                pretty_min_quality_score=scan_config.pretty_min_quality_score,
+                pretty_hard_filter_score=scan_config.pretty_hard_filter_score,
+            )
+            pretty_ok = pretty_signal_ok(
+                quality_score,
+                pretty_hard_filter_score=scan_config.pretty_hard_filter_score,
+            )
             market_ok = bool(market_snapshot["market_ok"])
             sector_ok = bool(theme_payload["sector_ok"])
             sector_band = _sector_band(theme_payload, scan_config.sector_filter)
@@ -177,6 +358,9 @@ def scan_market(
             payload["score"] = round(max(0.0, score), 2)
             payload["name"] = row.get("name", "")
             payload["signal_name"] = signal_names.get(signal.signal_type, signal.signal_type)
+            payload["quality_score"] = quality_score
+            payload["quality_bucket"] = quality_bucket
+            payload["pretty_ok"] = pretty_ok
             payload["market_ok"] = market_ok
             payload["market_score"] = market_snapshot["market_score"]
             payload["market_regime"] = market_snapshot["market_regime"]
@@ -204,7 +388,10 @@ def scan_market(
     frame = pd.DataFrame(results)
     if frame.empty:
         return frame
-    return frame.sort_values(["score", "confidence_score", "signal_date"], ascending=False).reset_index(drop=True)
+    sort_columns = ["score", "confidence_score", "signal_date"]
+    if "quality_score" in frame.columns:
+        sort_columns = ["pretty_ok", "quality_score"] + sort_columns
+    return frame.sort_values(sort_columns, ascending=False).reset_index(drop=True)
 
 
 def normalize_signal_candidates(results: pd.DataFrame) -> pd.DataFrame:
@@ -256,16 +443,59 @@ def select_diverse_candidates(results: pd.DataFrame, *, top_n: int, per_signal_l
     if results.empty:
         return results
     normalized_results = normalize_signal_candidates(results)
+    ranked_results = normalized_results.copy()
+    ranked_results = ranked_results[ranked_results.apply(_candidate_signal_allowed, axis=1)].copy()
+    if ranked_results.empty:
+        return ranked_results
+    if "pretty_ok" in ranked_results.columns:
+        pretty_candidates = ranked_results[ranked_results["pretty_ok"].fillna(False)]
+        if not pretty_candidates.empty:
+            ranked_results = pretty_candidates.copy()
+    if "sector_band" in ranked_results.columns:
+        sector_priority = {
+            "edge_high": 5,
+            "strong": 4,
+            "edge_low": 3,
+            "weak": 2,
+            "none": 1,
+            "crowded": 0,
+        }
+        ranked_results["_sector_priority"] = ranked_results["sector_band"].map(sector_priority).fillna(0)
+    else:
+        ranked_results["_sector_priority"] = 0
+    if "filter_ok" in ranked_results.columns:
+        ranked_results["_filter_priority"] = ranked_results["filter_ok"].fillna(False).astype(int)
+    else:
+        ranked_results["_filter_priority"] = 0
+    if "pretty_ok" in ranked_results.columns:
+        ranked_results["_pretty_priority"] = ranked_results["pretty_ok"].fillna(False).astype(int)
+    else:
+        ranked_results["_pretty_priority"] = 0
+    if "quality_score" in ranked_results.columns:
+        ranked_results["_quality_priority"] = pd.to_numeric(ranked_results["quality_score"], errors="coerce").fillna(0.0)
+    else:
+        ranked_results["_quality_priority"] = 0.0
+    ranked_results = ranked_results.sort_values(
+        ["_filter_priority", "_pretty_priority", "_quality_priority", "_sector_priority", "score", "confidence_score", "signal_date"],
+        ascending=False,
+    ).reset_index(drop=True)
     picked_rows = []
     counts: dict[str, int] = {}
-    for _, row in normalized_results.iterrows():
+    for _, row in ranked_results.iterrows():
         signal_type = str(row["signal_type"])
-        if counts.get(signal_type, 0) >= per_signal_limit:
+        signal_limit = CANDIDATE_SIGNAL_LIMITS.get(signal_type, per_signal_limit)
+        if counts.get(signal_type, 0) >= signal_limit:
             continue
         counts[signal_type] = counts.get(signal_type, 0) + 1
         picked_rows.append(row)
         if len(picked_rows) >= top_n:
             break
     if not picked_rows:
-        return normalized_results.head(top_n)
-    return pd.DataFrame(picked_rows).reset_index(drop=True)
+        return ranked_results.drop(
+            columns=["_sector_priority", "_filter_priority", "_pretty_priority", "_quality_priority"],
+            errors="ignore",
+        ).head(top_n)
+    return pd.DataFrame(picked_rows).drop(
+        columns=["_sector_priority", "_filter_priority", "_pretty_priority", "_quality_priority"],
+        errors="ignore",
+    ).reset_index(drop=True)

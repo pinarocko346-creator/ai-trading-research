@@ -47,6 +47,7 @@ class ResearchSignal:
 class BacktestTrade:
     symbol: str
     signal_type: str
+    signal_date: date
     entry_date: date
     exit_date: date
     entry_price: float
@@ -55,9 +56,12 @@ class BacktestTrade:
     hold_days: int
     exit_reason: str
     confidence_score: float
+    mfe_pct: float = 0.0
+    mae_pct: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
+        payload["signal_date"] = self.signal_date.isoformat()
         payload["entry_date"] = self.entry_date.isoformat()
         payload["exit_date"] = self.exit_date.isoformat()
         return payload

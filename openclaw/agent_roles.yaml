@@ -1,0 +1,168 @@
+version: 1
+team_name: market-media-core
+description: >
+  面向美股、A股市场分析和自媒体生产的 OpenClaw 轻量多 Agent 角色定义。
+
+shared_rules:
+  - 必须区分事实、解释、预测
+  - 任何投资倾向性判断都要附带失效条件
+  - 不得虚构新闻、数据、时间、代码、机构观点
+  - 当证据不足时，必须明确写出证据不足
+  - 面向发布内容时，避免使用必涨、稳赢、确定性机会等绝对表达
+
+markets:
+  - a_share
+  - us_equity
+
+content_levels:
+  L1:
+    name: quick_flash
+    length: 100-200字
+    usage: 即时快讯
+  L2:
+    name: short_comment
+    length: 300-600字
+    usage: 观点短评
+  L3:
+    name: deep_article
+    length: 1000-3000字
+    usage: 深度长文
+  L4:
+    name: video_script
+    length: 60-180秒脚本
+    usage: 口播或视频
+
+roles:
+  - id: chief_editor
+    name: 总控主编
+    goal: 统一接收任务，调度 Agent，输出最终结论和终稿
+    primary_model: aicoding-2233/claude-opus-4-6
+    fallback_models:
+      - aicoding-2233-responses/gpt-5.3-codex
+    prompt_file: openclaw/prompts/chief_editor.md
+    inputs:
+      - 用户任务
+      - 下游 Agent 输出
+      - handoff_schema
+    outputs:
+      - 任务拆解
+      - 最终观点摘要
+      - 发布前终稿
+    strengths:
+      - 长上下文整合
+      - 多角色合并
+      - 结构化判断
+      - 最终定稿
+
+  - id: market_scanner
+    name: 市场扫描员
+    goal: 提炼市场热点、事件清单、异动摘要和优先跟踪标的
+    primary_model: aicoding-2233-responses/gpt-5.3-codex
+    fallback_models:
+      - moonshot/kimi-k2.5
+    prompt_file: openclaw/prompts/market_scanner.md
+    inputs:
+      - A股 latest manifest
+      - A股候选 CSV
+      - 日报 markdown
+      - 美股事件日历或异动清单
+    outputs:
+      - 热点主题清单
+      - 重点标的池
+      - 盘前盘后观察项
+    strengths:
+      - 结构化摘要
+      - 模板化输出
+      - 清单和表格整理
+
+  - id: fundamental_analyst
+    name: 基本面研究员
+    goal: 输出行业、公司、财报、政策和估值研究底稿
+    primary_model: moonshot/kimi-k2.5
+    fallback_models:
+      - aicoding-2233/claude-opus-4-6
+    prompt_file: openclaw/prompts/fundamental_analyst.md
+    inputs:
+      - 公司或行业选题
+      - 财报数据
+      - 政策材料
+      - 历史观点
+    outputs:
+      - 研究底稿
+      - 多空驱动
+      - 风险清单
+    strengths:
+      - 中文资料整理
+      - 行业背景归纳
+      - 财报叙事提炼
+
+  - id: news_sentiment
+    name: 新闻情绪研究员
+    goal: 整理新闻、公告、纪要、社媒舆情和叙事变化
+    primary_model: moonshot/kimi-k2.5
+    fallback_models:
+      - aicoding-2233-responses/gpt-5.3-codex
+    prompt_file: openclaw/prompts/news_sentiment.md
+    inputs:
+      - 新闻摘要
+      - 公告或纪要
+      - 主题线索
+    outputs:
+      - 叙事框架
+      - 情绪温度
+      - 分歧与误读点
+    strengths:
+      - 中文表达
+      - 新闻归纳
+      - 叙事总结
+
+  - id: content_writer
+    name: 内容写手
+    goal: 把研究结果改写成适合不同平台发布的成品文案
+    primary_model: moonshot/kimi-k2.5
+    fallback_models:
+      - aicoding-2233/claude-opus-4-6
+    prompt_file: openclaw/prompts/content_writer.md
+    inputs:
+      - 总控主编最终观点
+      - 已验证事实
+      - 目标平台和篇幅要求
+    outputs:
+      - 快讯
+      - 短评
+      - 长文
+      - 视频脚本
+    strengths:
+      - 中文内容起草
+      - 平台风格切换
+      - 可读性优化
+
+upgrade_roles:
+  - id: technical_analyst
+    name: 技术面分析师
+    recommended_model: aicoding-2233-responses/gpt-5.3-codex
+    goal: 补充走势、关键价位、交易结构
+  - id: bull_bear_debate
+    name: 多空辩论员
+    recommended_model: aicoding-2233/claude-opus-4-6
+    goal: 强制生成正反两套论证
+  - id: fact_checker
+    name: 事实核查员
+    recommended_model: aicoding-2233-responses/gpt-5.3-codex
+    goal: 核对数字、日期、代码、事件归属
+  - id: compliance_editor
+    name: 合规编辑
+    recommended_model: aicoding-2233/claude-opus-4-6
+    goal: 去掉夸张措辞和过度确定性表述
+
+project_inputs:
+  a_share:
+    manifest: reports/openclaw_daily/latest/manifest.json
+    candidates: reports/openclaw_daily/latest/daily_candidates.csv
+    report: reports/openclaw_daily/latest/daily_report.md
+    signals: reports/openclaw_daily/latest/daily_signals.json
+  us_equity:
+    manifest: external_or_manual
+    candidates: external_or_manual
+    report: external_or_manual
+    signals: external_or_manual

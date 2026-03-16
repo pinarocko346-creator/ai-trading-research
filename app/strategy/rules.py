@@ -17,6 +17,7 @@ PROGRAMMABLE_SIGNAL_CODES = {
     "double_breakout",
     "strength_emergence",
     "jumping_creek",
+    "cup_with_handle",
     "pullback_confirmation",
     "n_breakout",
     "support_resistance_flip",
@@ -37,20 +38,31 @@ PREPARE_REQUIRED_COLUMNS = [
     "ma_60",
     "rolling_high_20",
     "rolling_low_20",
+    "rolling_high_40",
+    "rolling_low_40",
     "breakout_level_20",
     "support_level_20",
+    "avg_volume_5",
     "avg_volume_20",
     "volume_ratio",
+    "volume_dryup_ratio_5_20",
     "body_pct",
     "range_pct",
+    "close_in_range",
+    "close_to_high_pct",
     "bullish",
     "bearish",
     "pct_change",
     "atr_14",
+    "range_atr_ratio",
     "trend_up",
     "trend_down",
     "drawdown_from_high_60",
+    "recovery_from_low_40",
     "retracement_50_20",
+    "tight_range_pct_5",
+    "tight_range_pct_10",
+    "tight_range_pct_20",
     "is_limit_up_like",
     "is_limit_down_like",
     "swing_low_flag",
@@ -67,6 +79,7 @@ def build_signal_catalog() -> list[SignalDefinition]:
         SignalDefinition("double_breakout", "双突破", "反转确认", "趋势线突破叠加第二重确认。", 1, True),
         SignalDefinition("strength_emergence", "强势出现", "反转确认", "形态中轴上放量。", 2, True),
         SignalDefinition("jumping_creek", "跳跃小溪", "趋势启动", "威科夫式放量越过阻力。", 2, True),
+        SignalDefinition("cup_with_handle", "杯子与杯柄", "趋势启动", "经典杯柄杯整理后放量突破。", 1, True),
         SignalDefinition("pullback_confirmation", "回抽确认", "趋势延续", "突破后回踩不破再确认。", 2, True),
         SignalDefinition("n_breakout", "N字突破", "趋势延续", "突破-回抽-再突破。", 3, True),
         SignalDefinition("support_resistance_flip", "支撑压力互换", "趋势延续", "突破后原压力转支撑。", 3, True),
@@ -96,10 +109,25 @@ class RuleThresholds:
     double_breakout_high_lookback: int = 10
     double_breakout_close_to_high_pct: float = 0.99
     double_breakout_min_volume_ratio: float = 1.05
+    double_breakout_min_body_pct: float = 0.015
+    double_breakout_min_close_in_range: float = 0.7
+    double_breakout_prior_below_bars: int = 3
+    double_breakout_prior_below_tolerance_pct: float = 0.003
+    double_breakout_min_breakout_pct: float = 0.01
+    double_breakout_prep_tight_range_pct: float = 0.12
     climax_volume_ratio: float = 1.8
     climax_drawdown_pct: float = 0.12
+    climax_reversal_min_body_pct: float = 0.015
+    climax_reversal_min_close_in_range: float = 0.6
+    climax_reversal_min_volume_ratio: float = 1.0
+    climax_reversal_reclaim_pct: float = 0.01
+    climax_max_reversal_bars: int = 3
     swing_lookback: int = 40
     false_break_volume_ratio: float = 0.9
+    false_break_reclaim_min_volume_ratio: float = 1.05
+    false_break_min_close_in_range: float = 0.6
+    false_break_min_reclaim_pct: float = 0.001
+    false_break_min_break_pct: float = 0.003
     range_lookback: int = 30
     box_tight_pct: float = 0.18
     strength_midline_buffer_pct: float = 0.01
@@ -111,9 +139,36 @@ class RuleThresholds:
     creek_min_volume_ratio: float = 1.8
     creek_min_body_pct: float = 0.025
     creek_min_range_atr_ratio: float = 0.9
-    creek_prior_below_bars: int = 3
+    creek_min_close_in_range: float = 0.75
+    creek_prep_tight_range_pct: float = 0.12
+    creek_prior_below_bars: int = 4
     creek_prior_below_tolerance_pct: float = 0.005
+    creek_min_breakout_pct: float = 0.02
+    cup_base_lookback: int = 50
+    cup_base_min_bars: int = 25
+    cup_prior_trend_lookback: int = 20
+    cup_prior_uptrend_min_pct: float = 0.12
+    cup_min_depth_pct: float = 0.1
+    cup_max_depth_pct: float = 0.35
+    cup_min_side_bars: int = 8
+    cup_min_recovery_pct: float = 0.94
+    cup_min_symmetry_ratio: float = 0.45
+    cup_handle_min_bars: int = 3
+    cup_handle_max_bars: int = 8
+    cup_handle_max_depth_pct: float = 0.12
+    cup_handle_max_range_pct: float = 0.12
+    cup_handle_min_position_pct: float = 0.55
+    cup_handle_max_volume_dryup_ratio: float = 0.95
+    cup_breakout_pct: float = 0.01
+    cup_breakout_min_body_pct: float = 0.018
+    cup_breakout_min_close_in_range: float = 0.8
+    cup_breakout_min_volume_ratio: float = 1.25
     n_breakout_pullback_window: int = 15
+    n_breakout_min_volume_ratio: float = 1.05
+    n_breakout_min_close_in_range: float = 0.65
+    n_breakout_rebreak_buffer_pct: float = 0.003
+    n_breakout_min_pullback_bars: int = 2
+    n_breakout_max_pullback_bars: int = 10
     support_flip_lookback: int = 30
     spring_break_pct: float = 0.01
     pattern_lookback: int = 30
@@ -136,6 +191,7 @@ class RuleThresholds:
     false_break_min_body_pct: float = 0.003
     false_break_prior_low_min_age: int = 3
     false_break_close_in_upper_half: bool = True
+    false_break_close_above_break_bar: bool = True
     right_shoulder_similarity_pct: float = 0.08
     right_shoulder_bounce_pct: float = 0.015
     right_shoulder_signal_bars_from_low: int = 5
@@ -166,6 +222,10 @@ def _range_stats(frame: pd.DataFrame) -> tuple[float, float, float]:
     low = float(frame["low"].min())
     width_pct = (high - low) / max(low, 1e-6)
     return low, high, width_pct
+
+
+def _safe_ratio(numerator: float, denominator: float) -> float:
+    return numerator / max(denominator, 1e-6)
 
 
 def _select_recent_candidate(df: pd.DataFrame, predicate: pd.Series, recency_days: int) -> pd.Series | None:
@@ -234,16 +294,26 @@ def detect_selling_climax(
     )
     if crash_bar is None:
         return None
-    recent_slice = df[df["date"] >= crash_bar["date"]]
+    recent_slice = df[df["date"] >= crash_bar["date"]].head(thresholds.climax_max_reversal_bars + 1)
     reversal_bar = recent_slice[
         (recent_slice["close"] >= recent_slice["open"])
         & (recent_slice["close"] > recent_slice["low"] * 1.03)
+        & (recent_slice["body_pct"] >= thresholds.climax_reversal_min_body_pct)
+        & (recent_slice["close_in_range"] >= thresholds.climax_reversal_min_close_in_range)
+        & (recent_slice["volume_ratio"] >= thresholds.climax_reversal_min_volume_ratio)
     ]
     signal_bar = reversal_bar.iloc[-1] if not reversal_bar.empty else recent
     trend_ok = bool(crash_bar["drawdown_from_high_60"] >= thresholds.climax_drawdown_pct)
     location_ok = bool(crash_bar["volume_ratio"] >= thresholds.climax_volume_ratio)
-    pattern_ok = bool(signal_bar["close"] >= crash_bar["low"] * 1.03)
-    volume_ok = bool(crash_bar["volume_ratio"] >= thresholds.climax_volume_ratio)
+    pattern_ok = bool(
+        signal_bar["close"] >= crash_bar["low"] * 1.03
+        and signal_bar["close"] >= crash_bar["close"] * (1 + thresholds.climax_reversal_reclaim_pct)
+        and (signal_bar["date"] - crash_bar["date"]).days <= thresholds.climax_max_reversal_bars + 1
+    )
+    volume_ok = bool(
+        crash_bar["volume_ratio"] >= thresholds.climax_volume_ratio
+        and signal_bar["volume_ratio"] >= thresholds.climax_reversal_min_volume_ratio
+    )
     invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "极端杀跌后尚未看到明确止跌"
     return _empty_signal(
         "selling_climax",
@@ -259,6 +329,8 @@ def detect_selling_climax(
             "climax_date": crash_bar["date"].date().isoformat(),
             "volume_ratio": float(crash_bar["volume_ratio"]),
             "drawdown_from_high_60": float(crash_bar["drawdown_from_high_60"]),
+            "reversal_volume_ratio": float(signal_bar["volume_ratio"]),
+            "reversal_close_in_range": float(signal_bar["close_in_range"]),
         },
         invalid_reason=invalid_reason,
     )
@@ -405,13 +477,19 @@ def detect_false_breakdown(
 
     breakdown_bar = breakdown_candidates.iloc[0]
     after_break = recent_window[recent_window["date"] >= breakdown_bar["date"]].head(thresholds.false_break_reclaim_bars + 1)
+    break_pct = (float(breakdown_bar["support_level"]) - float(after_break["low"].min())) / max(
+        float(breakdown_bar["support_level"]), 1e-6
+    )
     close_position = (after_break["close"] - after_break["low"]) / (after_break["high"] - after_break["low"]).clip(lower=1e-6)
     reclaim_candidates = after_break[
-        (after_break["close"] >= after_break["support_level"] * (1 - thresholds.false_break_reclaim_tolerance_pct))
+        (after_break["close"] >= after_break["support_level"] * (1 + thresholds.false_break_min_reclaim_pct))
         & (
             after_break["bullish"]
-            | (after_break["body_pct"] >= thresholds.false_break_min_body_pct)
-            | (thresholds.false_break_close_in_upper_half & (close_position >= 0.55))
+            | (
+                (after_break["body_pct"] >= thresholds.false_break_min_body_pct)
+                & (after_break["close_in_range"] >= thresholds.false_break_min_close_in_range)
+            )
+            | (thresholds.false_break_close_in_upper_half & (close_position >= 0.65))
         )
     ]
     if reclaim_candidates.empty:
@@ -437,23 +515,34 @@ def detect_false_breakdown(
     support = float(breakdown_bar["support_level"])
     broke_support = bool((after_break["low"] < support).any())
     reclaim_in_time = bool((reclaim_bar["date"] - breakdown_bar["date"]).days <= thresholds.false_break_reclaim_bars + 1)
+    reclaim_strength_ok = bool(
+        reclaim_bar["close"] > breakdown_bar["close"] if thresholds.false_break_close_above_break_bar else True
+    )
 
-    trend_ok = bool(history["drawdown_from_high_60"].iloc[-1] > thresholds.two_b_min_drawdown * 0.8)
-    location_ok = broke_support
+    trend_ok = bool(
+        history["drawdown_from_high_60"].iloc[-1] > thresholds.two_b_min_drawdown * 0.8
+        and (history["trend_down"].tail(8).any() or history["close"].iloc[-1] < history["ma_20"].iloc[-1])
+    )
+    location_ok = broke_support and break_pct >= thresholds.false_break_min_break_pct
     pattern_ok = bool(
-        reclaim_bar["close"] >= support * (1 - thresholds.false_break_reclaim_tolerance_pct)
+        reclaim_bar["close"] >= support * (1 + thresholds.false_break_min_reclaim_pct)
         and reclaim_in_time
+        and reclaim_strength_ok
         and (
             reclaim_bar["bullish"]
-            or reclaim_bar["body_pct"] >= thresholds.false_break_min_body_pct
+            or (
+                reclaim_bar["body_pct"] >= thresholds.false_break_min_body_pct
+                and reclaim_bar["close_in_range"] >= thresholds.false_break_min_close_in_range
+            )
             or (
                 thresholds.false_break_close_in_upper_half
-                and (reclaim_bar["close"] - reclaim_bar["low"]) / max(reclaim_bar["high"] - reclaim_bar["low"], 1e-6) >= 0.55
+                and (reclaim_bar["close"] - reclaim_bar["low"]) / max(reclaim_bar["high"] - reclaim_bar["low"], 1e-6) >= 0.65
             )
         )
     )
     volume_ok = bool(
-        max(float(reclaim_bar["volume_ratio"]), float(breakdown_bar["volume_ratio"])) >= thresholds.false_break_volume_ratio
+        max(float(reclaim_bar["volume_ratio"]), float(breakdown_bar["volume_ratio"]))
+        >= thresholds.false_break_reclaim_min_volume_ratio
     )
     invalid_reason = None
     if not all([trend_ok, location_ok, pattern_ok, volume_ok]):
@@ -475,6 +564,8 @@ def detect_false_breakdown(
             "reclaim_in_time": reclaim_in_time,
             "support_source": "swing_low" if prior_swing_low is not None else "rolling_low",
             "volume_ratio": float(reclaim_bar["volume_ratio"]),
+            "close_in_range": float(reclaim_bar["close_in_range"]),
+            "break_pct": float(break_pct),
         },
         invalid_reason=invalid_reason,
     )
@@ -563,14 +654,29 @@ def detect_double_breakout(
 
     signal_bar = candidates.iloc[-1]
     prior = df[df["date"] < signal_bar["date"]].iloc[-1]
+    prior_window = df[df["date"] < signal_bar["date"]].tail(thresholds.double_breakout_prior_below_bars)
     recent_high = float(df[df["date"] <= signal_bar["date"]]["high"].tail(thresholds.double_breakout_high_lookback).max())
     breakout_level = float(signal_bar["breakout_level"])
+    breakout_pct = (float(signal_bar["close"]) - breakout_level) / max(breakout_level, 1e-6)
+    prior_below_breakout = bool(
+        len(prior_window) == thresholds.double_breakout_prior_below_bars
+        and (prior_window["close"] <= breakout_level * (1 + thresholds.double_breakout_prior_below_tolerance_pct)).all()
+    )
+    prep_tight = bool(
+        not prior_window["tight_range_pct_5"].dropna().empty
+        and float(prior_window["tight_range_pct_5"].dropna().iloc[-1]) <= thresholds.double_breakout_prep_tight_range_pct
+    )
 
-    trend_ok = bool(signal_bar["trend_up"])
+    trend_ok = bool(signal_bar["trend_up"] and signal_bar["ma_20"] >= df.iloc[-5]["ma_20"])
     location_ok = bool(signal_bar["close"] > breakout_level * (1 + thresholds.breakout_buffer_pct))
     pattern_ok = bool(
         signal_bar["close"] > prior["high"]
         and signal_bar["close"] >= recent_high * thresholds.double_breakout_close_to_high_pct
+        and signal_bar["body_pct"] >= thresholds.double_breakout_min_body_pct
+        and signal_bar["close_in_range"] >= thresholds.double_breakout_min_close_in_range
+        and prior_below_breakout
+        and breakout_pct >= thresholds.double_breakout_min_breakout_pct
+        and prep_tight
     )
     volume_ok = bool(signal_bar["volume_ratio"] >= thresholds.double_breakout_min_volume_ratio)
     invalid_reason = None
@@ -591,6 +697,10 @@ def detect_double_breakout(
             "breakout_level": breakout_level,
             "recent_high_10": recent_high,
             "volume_ratio": float(signal_bar["volume_ratio"]),
+            "close_in_range": float(signal_bar["close_in_range"]),
+            "prior_below_breakout": prior_below_breakout,
+            "breakout_pct": float(breakout_pct),
+            "prep_tight": prep_tight,
         },
         invalid_reason=invalid_reason,
     )
@@ -662,7 +772,7 @@ def detect_jumping_creek(
     resistance_series = df["high"].rolling(thresholds.creek_lookback).max().shift(1)
     recent_window["resistance"] = resistance_series.tail(thresholds.signal_recency_days).values
     candidates = recent_window[
-        (recent_window["close"] > recent_window["resistance"] * (1 + thresholds.creek_breakout_pct))
+        (recent_window["close"] > recent_window["resistance"] * (1 + thresholds.creek_min_breakout_pct))
         & (recent_window["volume_ratio"] >= thresholds.creek_min_volume_ratio)
     ]
     if candidates.empty:
@@ -675,14 +785,18 @@ def detect_jumping_creek(
         len(prior_window) == thresholds.creek_prior_below_bars
         and (prior_window["close"] <= signal_bar["resistance"] * (1 + thresholds.creek_prior_below_tolerance_pct)).all()
     )
+    prep_tight = bool(float(prior_window["tight_range_pct_5"].dropna().iloc[-1]) <= thresholds.creek_prep_tight_range_pct) if not prior_window["tight_range_pct_5"].dropna().empty else False
 
     trend_ok = bool(signal_bar["ma_20"] >= signal_bar["ma_60"] * 0.98 and signal_bar["ma_20"] >= df.iloc[-5]["ma_20"])
-    location_ok = bool(signal_bar["close"] > signal_bar["resistance"] * (1 + thresholds.creek_breakout_pct))
+    location_ok = bool(signal_bar["close"] > signal_bar["resistance"] * (1 + thresholds.creek_min_breakout_pct))
     pattern_ok = bool(
         signal_bar["close"] >= signal_bar["high"] * 0.985
         and signal_bar["body_pct"] >= thresholds.creek_min_body_pct
         and range_atr_ratio >= thresholds.creek_min_range_atr_ratio
         and prior_below_resistance
+        and breakout_pct >= thresholds.creek_min_breakout_pct
+        and signal_bar["close_in_range"] >= thresholds.creek_min_close_in_range
+        and prep_tight
     )
     volume_ok = bool(signal_bar["volume_ratio"] >= thresholds.creek_min_volume_ratio)
     invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "越过阻力但确认力度不足"
@@ -702,6 +816,140 @@ def detect_jumping_creek(
             "breakout_pct": float(breakout_pct),
             "range_atr_ratio": float(range_atr_ratio),
             "prior_below_resistance": prior_below_resistance,
+            "close_in_range": float(signal_bar["close_in_range"]),
+            "prep_tight": prep_tight,
+        },
+        invalid_reason=invalid_reason,
+    )
+
+
+def detect_cup_with_handle(
+    frame: pd.DataFrame, symbol: str, thresholds: RuleThresholds
+) -> ResearchSignal | None:
+    df = _prepare_frame(frame)
+    minimum_bars = thresholds.cup_base_lookback + thresholds.signal_recency_days
+    if len(df) < minimum_bars:
+        return None
+
+    recent_window = df.tail(thresholds.signal_recency_days).copy()
+    resistance_series = df["high"].rolling(thresholds.cup_base_lookback).max().shift(1)
+    recent_window["resistance"] = resistance_series.tail(thresholds.signal_recency_days).values
+    candidates = recent_window[
+        (recent_window["close"] > recent_window["resistance"] * (1 + thresholds.cup_breakout_pct))
+        & (recent_window["volume_ratio"] >= thresholds.cup_breakout_min_volume_ratio)
+    ]
+    if candidates.empty:
+        return None
+
+    signal_bar = candidates.iloc[-1]
+    signal_index = int(signal_bar.name)
+    pre_signal = df.iloc[:signal_index].copy()
+    if len(pre_signal) < thresholds.cup_base_lookback:
+        return None
+
+    handle_search = pre_signal.tail(thresholds.cup_handle_max_bars + 4)
+    if len(handle_search) <= thresholds.cup_handle_min_bars:
+        return None
+    right_peak_idx = int(handle_search["high"].idxmax())
+    handle_window = pre_signal.iloc[right_peak_idx + 1 :]
+    if not (thresholds.cup_handle_min_bars <= len(handle_window) <= thresholds.cup_handle_max_bars):
+        return None
+
+    cup_window = pre_signal.iloc[max(0, right_peak_idx - thresholds.cup_base_lookback + 1) : right_peak_idx + 1].copy()
+    if len(cup_window) < thresholds.cup_base_min_bars:
+        return None
+    left_search_end = max(0, len(cup_window) - thresholds.cup_handle_min_bars)
+    left_search = cup_window.iloc[:left_search_end]
+    if left_search.empty:
+        return None
+    left_peak_idx = int(left_search["high"].idxmax())
+    if left_peak_idx >= right_peak_idx:
+        return None
+
+    cup_section = df.iloc[left_peak_idx : right_peak_idx + 1].copy()
+    if len(cup_section) < thresholds.cup_base_min_bars:
+        return None
+    cup_low_idx = int(cup_section["low"].idxmin())
+    if not (left_peak_idx < cup_low_idx < right_peak_idx):
+        return None
+
+    left_peak = float(df.loc[left_peak_idx, "high"])
+    cup_low = float(df.loc[cup_low_idx, "low"])
+    right_peak = float(df.loc[right_peak_idx, "high"])
+    handle_low = float(handle_window["low"].min())
+    handle_high = float(handle_window["high"].max())
+    handle_bars = int(len(handle_window))
+    left_bars = int(cup_low_idx - left_peak_idx)
+    right_bars = int(right_peak_idx - cup_low_idx)
+    cup_depth_pct = _safe_ratio(left_peak - cup_low, left_peak)
+    right_peak_recovery_pct = _safe_ratio(right_peak, left_peak)
+    handle_depth_pct = _safe_ratio(right_peak - handle_low, right_peak)
+    handle_range_pct = _safe_ratio(handle_high - handle_low, right_peak)
+    handle_low_position_pct = _safe_ratio(handle_low - cup_low, left_peak - cup_low)
+    symmetry_ratio = _safe_ratio(min(left_bars, right_bars), max(left_bars, right_bars))
+    handle_volume_dryup_ratio = _safe_ratio(float(handle_window["volume"].mean()), float(cup_section["volume"].mean()))
+    resistance = max(float(signal_bar["resistance"]), left_peak, right_peak)
+    breakout_pct = _safe_ratio(float(signal_bar["close"]) - resistance, resistance)
+
+    prior_trend_start = max(0, left_peak_idx - thresholds.cup_prior_trend_lookback)
+    prior_trend_window = df.iloc[prior_trend_start : left_peak_idx + 1]
+    if len(prior_trend_window) < max(5, thresholds.cup_prior_trend_lookback // 2):
+        return None
+    prior_uptrend_pct = _safe_ratio(left_peak - float(prior_trend_window["close"].iloc[0]), float(prior_trend_window["close"].iloc[0]))
+
+    trend_ok = bool(
+        signal_bar["trend_up"]
+        and signal_bar["ma_20"] >= signal_bar["ma_60"] * 0.99
+        and prior_uptrend_pct >= thresholds.cup_prior_uptrend_min_pct
+    )
+    location_ok = bool(
+        thresholds.cup_min_depth_pct <= cup_depth_pct <= thresholds.cup_max_depth_pct
+        and right_peak_recovery_pct >= thresholds.cup_min_recovery_pct
+        and handle_low_position_pct >= thresholds.cup_handle_min_position_pct
+    )
+    pattern_ok = bool(
+        left_bars >= thresholds.cup_min_side_bars
+        and right_bars >= thresholds.cup_min_side_bars
+        and symmetry_ratio >= thresholds.cup_min_symmetry_ratio
+        and handle_bars >= thresholds.cup_handle_min_bars
+        and handle_depth_pct <= thresholds.cup_handle_max_depth_pct
+        and handle_range_pct <= thresholds.cup_handle_max_range_pct
+        and breakout_pct >= thresholds.cup_breakout_pct
+        and signal_bar["body_pct"] >= thresholds.cup_breakout_min_body_pct
+        and signal_bar["close_in_range"] >= thresholds.cup_breakout_min_close_in_range
+    )
+    volume_ok = bool(
+        signal_bar["volume_ratio"] >= thresholds.cup_breakout_min_volume_ratio
+        and handle_volume_dryup_ratio <= thresholds.cup_handle_max_volume_dryup_ratio
+    )
+    invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "杯柄杯结构不够经典或突破质量不足"
+    return _empty_signal(
+        "cup_with_handle",
+        symbol,
+        signal_bar,
+        trend_ok=trend_ok,
+        location_ok=location_ok,
+        pattern_ok=pattern_ok,
+        volume_ok=volume_ok,
+        stop_price=handle_low,
+        target_price=float(signal_bar["close"] + 2 * signal_bar["atr_14"]),
+        factors={
+            "resistance": resistance,
+            "left_peak": left_peak,
+            "cup_low": cup_low,
+            "right_peak": right_peak,
+            "cup_depth_pct": float(cup_depth_pct),
+            "right_peak_recovery_pct": float(right_peak_recovery_pct),
+            "handle_depth_pct": float(handle_depth_pct),
+            "handle_range_pct": float(handle_range_pct),
+            "handle_low_position_pct": float(handle_low_position_pct),
+            "handle_bars": handle_bars,
+            "handle_volume_dryup_ratio": float(handle_volume_dryup_ratio),
+            "symmetry_ratio": float(symmetry_ratio),
+            "prior_uptrend_pct": float(prior_uptrend_pct),
+            "breakout_pct": float(breakout_pct),
+            "close_in_range": float(signal_bar["close_in_range"]),
+            "volume_ratio": float(signal_bar["volume_ratio"]),
         },
         invalid_reason=invalid_reason,
     )
@@ -757,17 +1005,26 @@ def detect_n_breakout(
     first_breakout = prior_window[prior_window["close"] > prior_window["breakout_level_20"]]
     if first_breakout.empty:
         return None
-    first_break = first_breakout.iloc[0]
-    post_break_window = df[df["date"] > first_break["date"]].tail(thresholds.n_breakout_pullback_window)
+    first_break = first_breakout.iloc[-1]
+    post_break_window = df[(df["date"] > first_break["date"]) & (df["date"] < recent["date"])].tail(thresholds.n_breakout_pullback_window)
     if post_break_window.empty:
+        return None
+    if not (thresholds.n_breakout_min_pullback_bars <= len(post_break_window) <= thresholds.n_breakout_max_pullback_bars):
         return None
     pullback_low = float(post_break_window["low"].min())
     retraced = pullback_low >= float(first_break["breakout_level_20"]) * (1 - thresholds.pullback_tolerance_pct)
     prior_high = float(post_break_window["high"].max())
     trend_ok = bool(recent["trend_up"])
     location_ok = bool(retraced)
-    pattern_ok = bool(recent["close"] > prior_high * 0.995 and recent["close"] > first_break["close"])
-    volume_ok = bool(recent["volume_ratio"] >= thresholds.false_break_volume_ratio)
+    pattern_ok = bool(
+        recent["close"] > prior_high * (1 + thresholds.n_breakout_rebreak_buffer_pct)
+        and recent["close"] > first_break["close"]
+        and recent["close_in_range"] >= thresholds.n_breakout_min_close_in_range
+    )
+    volume_ok = bool(
+        recent["volume_ratio"] >= thresholds.n_breakout_min_volume_ratio
+        and first_break["volume_ratio"] >= thresholds.n_breakout_min_volume_ratio
+    )
     invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "N字推进尚未形成再突破"
     return _empty_signal(
         "n_breakout",
@@ -779,7 +1036,14 @@ def detect_n_breakout(
         volume_ok=volume_ok,
         stop_price=pullback_low,
         target_price=float(recent["close"] + 2 * recent["atr_14"]),
-        factors={"first_break_date": first_break["date"].date().isoformat(), "pullback_low": pullback_low, "prior_high": prior_high},
+        factors={
+            "first_break_date": first_break["date"].date().isoformat(),
+            "pullback_low": pullback_low,
+            "prior_high": prior_high,
+            "pullback_bars": len(post_break_window),
+            "close_in_range": float(recent["close_in_range"]),
+            "volume_ratio": float(recent["volume_ratio"]),
+        },
         invalid_reason=invalid_reason,
     )
 
@@ -953,6 +1217,7 @@ DETECTORS: dict[str, Callable[[pd.DataFrame, str, RuleThresholds], ResearchSigna
     "double_breakout": detect_double_breakout,
     "strength_emergence": detect_strength_emergence,
     "jumping_creek": detect_jumping_creek,
+    "cup_with_handle": detect_cup_with_handle,
     "pullback_confirmation": detect_pullback_confirmation,
     "n_breakout": detect_n_breakout,
     "support_resistance_flip": detect_support_resistance_flip,

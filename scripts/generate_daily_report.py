@@ -10,6 +10,7 @@ from app.data.market_context import MarketFilterConfig
 from app.data.sector_context import SectorFilterConfig
 from app.backtest.engine import BacktestConfig, run_signal_backtest
 from app.data.ingest import DataIngestConfig, fetch_a_share_history
+from app.report.csv_localizer import write_localized_csv
 from app.data.universe import UniverseConfig
 from app.report.charting import plot_signal_context
 from app.report.report_builder import build_daily_report, dump_signals_json, save_report
@@ -41,7 +42,7 @@ def _match_signal(history, symbol: str, signal_type: str, signal_date: str, thre
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="生成A股13买点日报")
-    parser.add_argument("--max-symbols", type=int, default=100, help="扫描股票池数量")
+    parser.add_argument("--max-symbols", type=int, default=100, help="扫描股票池数量，传 0 表示全量")
     parser.add_argument("--top", type=int, default=20, help="日报保留候选数量")
     args = parser.parse_args()
 
@@ -58,6 +59,7 @@ def main() -> None:
         **config.get("sector_filter", {}),
     )
     scan_config = ScanConfig(
+        **config.get("scan", {}),
         max_symbols=args.max_symbols,
         cache_dir=PROJECT_ROOT / "data" / "cache",
         ingest_config=DataIngestConfig(
@@ -121,6 +123,7 @@ def main() -> None:
         signal.factors["market_up_ratio"] = float(row.get("market_up_ratio", 0.0) or 0.0)
         signal.factors["market_limit_up_count"] = int(row.get("market_limit_up_count", 0) or 0)
         signal.factors["market_limit_down_count"] = int(row.get("market_limit_down_count", 0) or 0)
+        signal.factors["filter_ok"] = bool(row.get("filter_ok", False))
         signal.factors["sector_ok"] = bool(row.get("sector_ok", False))
         signal.factors["sector_score"] = float(row.get("sector_score", 0.0) or 0.0)
         signal.factors["sector_band"] = str(row.get("sector_band", "") or "")
@@ -128,6 +131,9 @@ def main() -> None:
         signal.factors["industry_score"] = float(row.get("industry_score", 0.0) or 0.0)
         signal.factors["concept_names"] = list(row.get("concept_names", []) or [])
         signal.factors["concept_scores"] = list(row.get("concept_scores", []) or [])
+        signal.factors["quality_score"] = float(row.get("quality_score", 0.0) or 0.0)
+        signal.factors["quality_bucket"] = str(row.get("quality_bucket", "") or "")
+        signal.factors["pretty_ok"] = bool(row.get("pretty_ok", False))
         signals.append(signal)
         chart_path = chart_dir / f"{symbol}_{signal.signal_date.isoformat()}_{signal.signal_type}.png"
         plot_signal_context(history, signal, chart_path)
@@ -155,7 +161,7 @@ def main() -> None:
     json_path = output_dir / f"daily_signals_{stamp}.json"
 
     save_report(report_text, report_path)
-    top_rows.to_csv(scan_path, index=False)
+    write_localized_csv(top_rows, str(scan_path))
     dump_signals_json(signals, json_path)
 
     print(f"universe={len(universe)}")

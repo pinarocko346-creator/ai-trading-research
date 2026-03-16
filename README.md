@@ -56,6 +56,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/batch_scan.py --max-symbols 100
 .venv/bin/python scripts/export_annotation_cases.py 600036 000001 --signal 2b_structure
 .venv/bin/python scripts/generate_daily_report.py --max-symbols 100 --top 20
+.venv/bin/python scripts/run_openclaw_daily.py --max-symbols 0 --top 20 --universe-scope tradeable
 ```
 
 说明：
@@ -64,6 +65,20 @@ python3 -m venv .venv
 - `batch_scan.py`：批量扫描 A 股股票池并输出 CSV
 - `export_annotation_cases.py`：批量导出历史案例截图和待标注清单
 - `generate_daily_report.py`：生成候选、配图和 AI 解读合并日报
+- `run_openclaw_daily.py` / `run_openclaw_daily.sh`：适合 `OpenClaw` 定时执行的统一日任务入口
+
+## OpenClaw 日任务
+
+项目已提供 `OpenClaw` 友好的统一入口：
+
+```bash
+cd /Users/apple/ai-trading-research
+bash scripts/run_openclaw_daily.sh
+```
+
+该流程会输出固定目录结构、`latest/manifest.json`、候选 CSV、日报 Markdown、信号 JSON 和图表目录，便于后续自动读取。
+
+详细说明见 `docs/openclaw_daily.md`。
 
 ## 设计原则
 
