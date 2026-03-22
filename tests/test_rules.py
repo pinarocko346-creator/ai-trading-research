@@ -160,6 +160,17 @@ def _synthetic_strength_emergence_frame() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _synthetic_strength_emergence_frame_midbox() -> pd.DataFrame:
+    frame = _synthetic_strength_emergence_frame().copy()
+    last_index = len(frame) - 1
+    frame.loc[last_index - 2 : last_index, "close"] = [11.72, 11.78, 11.79]
+    frame.loc[last_index - 2 : last_index, "open"] = [11.7, 11.74, 11.76]
+    frame.loc[last_index - 2 : last_index, "high"] = [11.9, 11.92, 11.95]
+    frame.loc[last_index - 2 : last_index, "low"] = [11.62, 11.68, 11.7]
+    frame.loc[last_index, "volume"] = 2_600_000
+    return frame
+
+
 def _synthetic_jumping_creek_frame() -> pd.DataFrame:
     closes = [7.2 + 0.05 * index for index in range(95)] + [
         13.0, 13.2, 13.4, 13.55, 13.7, 13.8, 13.65, 13.72, 13.78, 13.74,
@@ -201,17 +212,22 @@ def _synthetic_jumping_creek_frame() -> pd.DataFrame:
 def _synthetic_pattern_breakout_frame() -> pd.DataFrame:
     closes = [8.5 + 0.05 * index for index in range(90)] + [
         12.1, 12.35, 12.6, 12.3, 12.05, 11.8, 11.55, 11.75, 11.95, 12.1,
-        12.28, 12.12, 11.98, 11.84, 11.92, 12.04, 12.18, 12.12, 11.96, 11.88,
-        11.94, 12.02, 12.08, 12.12, 12.16, 12.22, 12.26, 12.29, 12.31, 12.52,
+        12.28, 12.12, 12.02, 11.98, 12.04, 12.10, 12.18, 12.16, 12.08, 12.06,
+        12.12, 12.18, 12.24, 12.28, 12.31, 12.34, 12.36, 12.38, 12.40, 12.56,
     ]
     rows = []
     last_index = len(closes) - 1
     for index, close in enumerate(closes):
         if index == last_index:
-            open_price = 12.28
-            high = 12.58
-            low = 12.22
+            open_price = 12.32
+            high = 12.60
+            low = 12.40
             volume = 3_600_000
+        elif index >= last_index - 3:
+            open_price = close * 0.997
+            high = min(max(close, open_price) * 1.008, 12.42)
+            low = max(min(close, open_price) * 0.992, 11.45)
+            volume = 1_650_000
         else:
             open_price = close * 0.997
             high = min(max(close, open_price) * 1.008, 12.42)
@@ -228,6 +244,17 @@ def _synthetic_pattern_breakout_frame() -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+def _synthetic_pattern_breakout_frame_failed_hold() -> pd.DataFrame:
+    frame = _synthetic_pattern_breakout_frame().copy()
+    last_index = len(frame) - 1
+    frame.loc[last_index, "open"] = 12.24
+    frame.loc[last_index, "high"] = 12.64
+    frame.loc[last_index, "low"] = 12.05
+    frame.loc[last_index, "close"] = 12.48
+    frame.loc[last_index, "volume"] = 3_700_000
+    return frame
 
 
 def _synthetic_support_flip_frame() -> pd.DataFrame:
@@ -286,6 +313,13 @@ def _synthetic_false_break_frame_shallow_break() -> pd.DataFrame:
     frame = _synthetic_false_break_frame().copy()
     frame.loc[len(frame) - 3, "low"] = 8.21
     frame.loc[len(frame) - 2, "low"] = 8.21
+    return frame
+
+
+def _synthetic_false_break_frame_weak_reclaim() -> pd.DataFrame:
+    frame = _synthetic_false_break_frame().copy()
+    frame.loc[len(frame) - 2, ["open", "high", "low", "close", "volume"]] = [8.25, 8.32, 8.18, 8.24, 2_300_000]
+    frame.loc[len(frame) - 1, ["open", "high", "low", "close", "volume"]] = [8.23, 8.31, 8.20, 8.25, 2_100_000]
     return frame
 
 
@@ -538,6 +572,17 @@ class RuleTests(unittest.TestCase):
         )
         self.assertFalse(signals)
 
+    def test_false_breakdown_rejects_weak_reclaim_without_fast_snapback(self) -> None:
+        frame = build_price_features(_synthetic_false_break_frame_weak_reclaim())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["false_breakdown"],
+            thresholds=RuleThresholds(swing_lookback=20),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
     def test_detects_right_shoulder_on_recent_bounce(self) -> None:
         frame = build_price_features(_synthetic_right_shoulder_frame())
         signals = scan_signals(
@@ -561,6 +606,17 @@ class RuleTests(unittest.TestCase):
         )
         self.assertTrue(signals)
         self.assertEqual(signals[0].signal_type, "strength_emergence")
+
+    def test_strength_emergence_rejects_midbox_close_without_upper_zone_control(self) -> None:
+        frame = _synthetic_strength_emergence_frame_midbox()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["strength_emergence"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
 
     def test_detects_jumping_creek_on_expansion_breakout(self) -> None:
         frame = _synthetic_jumping_creek_frame()
@@ -734,6 +790,17 @@ class RuleTests(unittest.TestCase):
         )
         self.assertTrue(signals)
         self.assertEqual(signals[0].signal_type, "pattern_breakout")
+
+    def test_pattern_breakout_rejects_breakout_that_fails_to_hold_box_high(self) -> None:
+        frame = _synthetic_pattern_breakout_frame_failed_hold()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["pattern_breakout"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
 
     def test_detects_support_resistance_flip_after_shallow_pullback(self) -> None:
         frame = _synthetic_support_flip_frame()

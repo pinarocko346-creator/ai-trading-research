@@ -144,6 +144,11 @@ class RuleThresholds:
     strength_upper_zone_frac: float = 0.72
     strength_near_high_pct: float = 0.025
     strength_recent_above_midline_bars: int = 4
+    strength_box_tight_pct: float = 0.14
+    strength_min_volume_ratio: float = 1.4
+    strength_min_close_in_range: float = 0.7
+    strength_min_upper_zone_bars: int = 3
+    strength_min_ma20_over_ma60_pct: float = 1.0
     creek_lookback: int = 40
     creek_breakout_pct: float = 0.015
     creek_min_volume_ratio: float = 1.8
@@ -248,6 +253,11 @@ class RuleThresholds:
     pattern_close_to_high_pct: float = 0.985
     pattern_prior_below_bars: int = 3
     pattern_prior_below_tolerance_pct: float = 0.003
+    pattern_min_ma20_over_ma60_pct: float = 1.0
+    pattern_min_body_pct: float = 0.018
+    pattern_min_close_in_range: float = 0.75
+    pattern_max_intraday_pullback_pct: float = 0.003
+    pattern_prior_volume_dryup_max_ratio: float = 0.95
     first_crash_drop_pct: float = 0.08
     rebound_min_body_pct: float = 0.02
     two_b_reclaim_bars: int = 2
@@ -261,6 +271,9 @@ class RuleThresholds:
     false_break_prior_low_min_age: int = 3
     false_break_close_in_upper_half: bool = True
     false_break_close_above_break_bar: bool = True
+    false_break_min_breakdown_close_in_range: float = 0.35
+    false_break_reclaim_min_rebound_from_low_pct: float = 0.01
+    false_break_reclaim_min_close_above_support_pct: float = 0.003
     right_shoulder_similarity_pct: float = 0.08
     right_shoulder_bounce_pct: float = 0.015
     right_shoulder_signal_bars_from_low: int = 5
@@ -591,12 +604,22 @@ def detect_false_breakdown(
 
     breakdown_bar = breakdown_candidates.iloc[0]
     after_break = recent_window[recent_window["date"] >= breakdown_bar["date"]].head(thresholds.false_break_reclaim_bars + 1)
+    breakdown_close_position = (float(breakdown_bar["close"]) - float(breakdown_bar["low"])) / max(
+        float(breakdown_bar["high"]) - float(breakdown_bar["low"]), 1e-6
+    )
     break_pct = (float(breakdown_bar["support_level"]) - float(after_break["low"].min())) / max(
         float(breakdown_bar["support_level"]), 1e-6
     )
     close_position = (after_break["close"] - after_break["low"]) / (after_break["high"] - after_break["low"]).clip(lower=1e-6)
     reclaim_candidates = after_break[
-        (after_break["close"] >= after_break["support_level"] * (1 + thresholds.false_break_min_reclaim_pct))
+        (
+            after_break["close"]
+            >= after_break["support_level"] * (1 + thresholds.false_break_reclaim_min_close_above_support_pct)
+        )
+        & (
+            (after_break["close"] - after_break["low"]) / (after_break["low"].clip(lower=1e-6))
+            >= thresholds.false_break_reclaim_min_rebound_from_low_pct
+        )
         & (
             after_break["bullish"]
             | (
@@ -637,11 +660,17 @@ def detect_false_breakdown(
         history["drawdown_from_high_60"].iloc[-1] > thresholds.two_b_min_drawdown * 0.8
         and (history["trend_down"].tail(8).any() or history["close"].iloc[-1] < history["ma_20"].iloc[-1])
     )
-    location_ok = broke_support and break_pct >= thresholds.false_break_min_break_pct
+    location_ok = bool(
+        broke_support
+        and break_pct >= thresholds.false_break_min_break_pct
+        and breakdown_close_position <= thresholds.false_break_min_breakdown_close_in_range
+    )
     pattern_ok = bool(
-        reclaim_bar["close"] >= support * (1 + thresholds.false_break_min_reclaim_pct)
+        reclaim_bar["close"] >= support * (1 + thresholds.false_break_reclaim_min_close_above_support_pct)
         and reclaim_in_time
         and reclaim_strength_ok
+        and (float(reclaim_bar["close"]) - float(reclaim_bar["low"])) / max(float(reclaim_bar["low"]), 1e-6)
+        >= thresholds.false_break_reclaim_min_rebound_from_low_pct
         and (
             reclaim_bar["bullish"]
             or (
@@ -680,6 +709,10 @@ def detect_false_breakdown(
             "volume_ratio": float(reclaim_bar["volume_ratio"]),
             "close_in_range": float(reclaim_bar["close_in_range"]),
             "break_pct": float(break_pct),
+            "breakdown_close_in_range": float(breakdown_close_position),
+            "rebound_from_low_pct": float(
+                (float(reclaim_bar["close"]) - float(reclaim_bar["low"])) / max(float(reclaim_bar["low"]), 1e-6)
+            ),
         },
         invalid_reason=invalid_reason,
     )
@@ -852,13 +885,15 @@ def detect_strength_emergence(
     recent_box = box.tail(5)
     close_to_high_pct = (box_high - recent["close"]) / max(box_high, 1e-6)
     closes_above_midline = int((recent_box["close"] > midline).sum())
+    closes_in_upper_zone = int((recent_box["close"] >= upper_zone_level).sum())
 
     trend_ok = bool(
-        recent["ma_20"] >= recent["ma_60"] * 0.98
+        recent["trend_up"]
+        and recent["ma_20"] >= recent["ma_60"] * thresholds.strength_min_ma20_over_ma60_pct
         and recent["ma_20"] >= df.iloc[-5]["ma_20"]
     )
     location_ok = bool(
-        width_pct <= thresholds.box_tight_pct
+        width_pct <= thresholds.strength_box_tight_pct
         and recent["close"] > midline * (1 + thresholds.strength_midline_buffer_pct)
         and recent["close"] >= upper_zone_level
     )
@@ -866,10 +901,12 @@ def detect_strength_emergence(
         recent["close"] < box_high * (1 + thresholds.breakout_buffer_pct)
         and close_to_high_pct <= thresholds.strength_near_high_pct
         and closes_above_midline >= thresholds.strength_recent_above_midline_bars
+        and closes_in_upper_zone >= thresholds.strength_min_upper_zone_bars
         and recent["close"] >= recent["open"]
+        and recent["close_in_range"] >= thresholds.strength_min_close_in_range
     )
-    volume_ok = bool(recent["volume_ratio"] >= thresholds.min_volume_ratio)
-    invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "中轴上放量但仍未形成有效强势出现"
+    volume_ok = bool(recent["volume_ratio"] >= thresholds.strength_min_volume_ratio)
+    invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "箱体不够紧、站位不够高或放量质量不足"
     return _empty_signal(
         "strength_emergence",
         symbol,
@@ -888,6 +925,9 @@ def detect_strength_emergence(
             "upper_zone_level": float(upper_zone_level),
             "close_to_high_pct": float(close_to_high_pct),
             "closes_above_midline": closes_above_midline,
+            "closes_in_upper_zone": closes_in_upper_zone,
+            "close_in_range": float(recent["close_in_range"]),
+            "volume_ratio": float(recent["volume_ratio"]),
         },
         invalid_reason=invalid_reason,
     )
@@ -1789,12 +1829,26 @@ def detect_pattern_breakout(
         len(prior_window) == thresholds.pattern_prior_below_bars
         and (prior_window["close"] <= box_high * (1 + thresholds.pattern_prior_below_tolerance_pct)).all()
     )
-    trend_ok = bool(signal_bar["ma_20"] >= signal_bar["ma_60"] * 0.98)
+    prior_volume_dryup_ratio = _safe_ratio(
+        float(prior_window["volume"].mean()),
+        float(df[df["date"] < signal_bar["date"]].tail(20)["volume"].mean()),
+    )
+    breakout_hold_ok = bool(
+        float(signal_bar["low"]) >= box_high * (1 - thresholds.pattern_max_intraday_pullback_pct)
+    )
+    trend_ok = bool(
+        signal_bar["trend_up"]
+        and signal_bar["ma_20"] >= signal_bar["ma_60"] * thresholds.pattern_min_ma20_over_ma60_pct
+    )
     location_ok = bool(thresholds.pattern_min_width_pct <= width_pct <= thresholds.pattern_max_width_pct)
     pattern_ok = bool(
         signal_bar["close"] > box_high * (1 + thresholds.pattern_breakout_pct)
         and signal_bar["close"] >= signal_bar["high"] * thresholds.pattern_close_to_high_pct
+        and signal_bar["body_pct"] >= thresholds.pattern_min_body_pct
+        and signal_bar["close_in_range"] >= thresholds.pattern_min_close_in_range
         and prior_below_box
+        and prior_volume_dryup_ratio <= thresholds.pattern_prior_volume_dryup_max_ratio
+        and breakout_hold_ok
     )
     volume_ok = bool(signal_bar["volume_ratio"] >= thresholds.pattern_min_volume_ratio)
     invalid_reason = None if all([trend_ok, location_ok, pattern_ok, volume_ok]) else "形态突破的结构或量价确认不足"
@@ -1814,6 +1868,10 @@ def detect_pattern_breakout(
             "width_pct": width_pct,
             "breakout_pct": float(breakout_pct),
             "prior_below_box": prior_below_box,
+            "close_in_range": float(signal_bar["close_in_range"]),
+            "volume_ratio": float(signal_bar["volume_ratio"]),
+            "prior_volume_dryup_ratio": float(prior_volume_dryup_ratio),
+            "breakout_hold_ok": breakout_hold_ok,
         },
         invalid_reason=invalid_reason,
     )

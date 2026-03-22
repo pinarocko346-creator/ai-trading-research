@@ -1,34 +1,49 @@
-# A股 14 买点 AI 研究系统
+# 甜点策略 / Sweet Spot Strategy
 
-这个项目把 `14个买点` 的主观方法论拆成可计算规则、样本标注模板、批量扫描、回测和解释报告。
+这是一个面向 `美股` 的量化研究仓库，目标是把主观交易方法论拆成可维护、可验证、可扩展的程序化系统。
 
-当前版本已接入 14 个买点的一版程序化规则：
+## 当前重点
 
-- `抛售高潮`
-- `2B结构`
-- `假诱空`
-- `顺势头肩（右肩简化版）`
-- `双突破`
-- `强势出现`
-- `跳跃小溪`
-- `杯子与杯柄`
-- `回抽确认`
-- `N字突破`
-- `支撑压力互换`
-- `箱体弹簧`
-- `形态突破`
-- `趋势急跌后的第一次反弹`
+当前主干模块：
 
-## 目录
+- `app/us_equities/`
+- `config/us_equities_daily.yaml`
+- `scripts/run_us_equities_daily.py`
 
-- `app/data`：A 股数据拉取、本地缓存、股票池过滤
-- `app/features`：K 线、趋势、量价、支撑压力特征
-- `app/strategy`：买点定义、规则识别、评分排序
-- `app/backtest`：轻量事件回测与绩效统计
-- `app/ai`：信号解释、失败归因、LLM 提示词
-- `app/report`：Markdown 研究报告
-- `data/samples`：标准样本、边界样本、失败样本模板
-- `notebooks`：交互式研究入口
+这条主线已经具备：
+
+- 本地 SQLite 全市场扫描
+- `MRMC(12,26,9)`
+- `NX` 蓝黄梯子
+- 日线 / 周线 / 月线状态构建
+- 板块共振
+- 多策略注册表
+- 预留 `4321` 多周期共振接入点
+
+## 项目结构
+
+### 美股主干
+
+- `app/us_equities/config.py`
+  配置对象，统一管理数据库、股票池、市场、板块和多周期开关。
+
+- `app/us_equities/database.py`
+  本地 SQLite 数据接入层。
+
+- `app/us_equities/daily_logic.py`
+  日线 / 周线 / 月线状态构建逻辑。
+
+- `app/us_equities/strategy_registry.py`
+  策略注册表，统一维护策略函数与元信息。
+
+- `app/us_equities/sectors.py`
+  板块篮子与板块共振统计。
+
+- `app/us_equities/pipeline.py`
+  主扫描流水线。
+
+- `app/us_equities/intraday.py`
+  多周期数据接口与 `4321` 共振接入点。
 
 ## 快速开始
 
@@ -36,54 +51,64 @@
 cd /Users/apple/ai-trading-research
 python3 -m venv .venv
 .venv/bin/pip install -e .
-.venv/bin/python scripts/demo_research.py
 ```
 
-如果本地没有安装 `akshare`，演示脚本会提示先安装依赖。A 股默认按 `后复权(hfq)` 口径读取；数据拉取失败时，也可以先用本地 CSV 做规则验证。
+## 运行命令
 
-## 研究流程
-
-1. 使用 `app/data/ingest.py` 下载并缓存 A 股日线。
-2. 用 `app/data/universe.py` 过滤 ST、停牌、低流动性个股。
-3. 在 `app/features/price_features.py` 上计算趋势、位置和量价特征。
-4. 运行 `app/strategy/rules.py` 生成信号。
-5. 使用 `app/backtest/engine.py` 与 `app/backtest/metrics.py` 做回测。
-6. 通过 `app/ai/explainer.py` 和 `app/report/report_builder.py` 输出研究报告。
-
-## 常用命令
+### 美股日线筛选
 
 ```bash
-.venv/bin/python scripts/review_symbol.py 600036 --history --signal double_breakout
-.venv/bin/python scripts/batch_scan.py --max-symbols 100
-.venv/bin/python scripts/export_annotation_cases.py 600036 000001 --signal 2b_structure
-.venv/bin/python scripts/generate_daily_report.py --max-symbols 100 --top 20
-.venv/bin/python scripts/run_openclaw_daily.py --max-symbols 0 --top 20 --universe-scope tradeable
+.venv/bin/python scripts/run_us_equities_daily.py --top 30
 ```
 
-说明：
+## 关键文档
 
-- `review_symbol.py`：单票复核，导出图形化信号上下文
-- `batch_scan.py`：批量扫描 A 股股票池并输出 CSV
-- `export_annotation_cases.py`：批量导出历史案例截图和待标注清单
-- `generate_daily_report.py`：生成候选、配图和 AI 解读合并日报
-- `run_openclaw_daily.py` / `run_openclaw_daily.sh`：适合 `OpenClaw` 定时执行的统一日任务入口
+- `docs/us_equities_project_structure.md`
+  美股项目结构说明
 
-## OpenClaw 日任务
+- `docs/us_equities_strategy_catalog.md`
+  美股策略清单
 
-项目已提供 `OpenClaw` 友好的统一入口：
+- `docs/us_futu_mrmc_nx_mapping.md`
+  富途 `MRMC + NX` 与项目实现映射
 
-```bash
-cd /Users/apple/ai-trading-research
-bash scripts/run_openclaw_daily.sh
-```
+- `docs/us_auto_stock_quant_system.md`
+  美股自动选股系统整理稿
 
-该流程会输出固定目录结构、`latest/manifest.json`、候选 CSV、日报 Markdown、信号 JSON 和图表目录，便于后续自动读取。
+## 当前已落地的美股策略
 
-详细说明见 `docs/openclaw_daily.md`。
+- `daily_bottom_breakout`
+- `blue_above_yellow_trend_daily`
+- `daily_sweet_spot`
+- `weekly_trend_resonance`
+- `4321_intraday_resonance`（已接入，默认关闭）
+
+## 多周期说明
+
+当前稳定支持：
+
+- `1d`
+- `1w`
+- `1mo`
+
+当前已预留但默认关闭：
+
+- `30m`
+- `1h`
+- `2h`
+- `3h`
+- `4h`
+
+原因：
+
+- 目前本地主数据仍以日线 SQLite 为主
+- `4321` 多周期共振需要分钟级或小时级原始数据
+
+后续只需要补齐分钟库并替换 `app/us_equities/intraday.py` 的数据源实现，即可正式启用多周期策略。
 
 ## 设计原则
 
 - 先规则化，再 AI 化
-- 先日线，再多周期
-- 先研究闭环，再考虑模拟盘或实盘
-- 先可解释，再做复杂建模
+- 先日线主干，再扩多周期
+- 先可验证，再追求复杂度
+- 先模块化，再扩展自动化执行

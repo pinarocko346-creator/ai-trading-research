@@ -66,6 +66,11 @@ thresholds:
   strength_upper_zone_frac: 0.72
   strength_near_high_pct: 0.025
   strength_recent_above_midline_bars: 4
+  strength_box_tight_pct: 0.14
+  strength_min_volume_ratio: 1.4
+  strength_min_close_in_range: 0.7
+  strength_min_upper_zone_bars: 3
+  strength_min_ma20_over_ma60_pct: 1.0
   creek_lookback: 40
   creek_breakout_pct: 0.015
   creek_min_volume_ratio: 2.2
@@ -170,6 +175,11 @@ thresholds:
   pattern_close_to_high_pct: 0.985
   pattern_prior_below_bars: 3
   pattern_prior_below_tolerance_pct: 0.003
+  pattern_min_ma20_over_ma60_pct: 1.0
+  pattern_min_body_pct: 0.018
+  pattern_min_close_in_range: 0.75
+  pattern_max_intraday_pullback_pct: 0.003
+  pattern_prior_volume_dryup_max_ratio: 0.95
   first_crash_drop_pct: 0.08
   rebound_min_body_pct: 0.02
   two_b_reclaim_bars: 2
@@ -183,6 +193,9 @@ thresholds:
   false_break_prior_low_min_age: 3
   false_break_close_in_upper_half: true
   false_break_close_above_break_bar: true
+  false_break_min_breakdown_close_in_range: 0.35
+  false_break_reclaim_min_rebound_from_low_pct: 0.01
+  false_break_reclaim_min_close_above_support_pct: 0.003
   right_shoulder_similarity_pct: 0.08
   right_shoulder_bounce_pct: 0.015
   right_shoulder_signal_bars_from_low: 5
