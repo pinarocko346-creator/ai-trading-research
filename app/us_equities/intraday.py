@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from app.us_futu.data import USDataConfig, download_us_history, resample_ohlcv
+from app.us_futu.data import resample_ohlcv
 from app.us_futu.indicators import MRMCMacdConfig, build_mrmc_nx_indicators
 
 from app.us_equities.config import USEquitiesIntradayConfig, USEquitiesSignalConfig
 from app.us_equities.daily_logic import timeframe_snapshot
+from app.us_equities.intraday_data import load_intraday_history
 
 
 def build_intraday_state(
@@ -16,15 +17,8 @@ def build_intraday_state(
     if not intraday_config.enabled:
         return None
 
-    data_config = USDataConfig(
-        source=intraday_config.source,
-        daily_period="2y",
-        intraday_30m_period=intraday_config.intraday_30m_period,
-        intraday_60m_period=intraday_config.intraday_60m_period,
-        refresh_hours=intraday_config.refresh_hours,
-    )
-    frame_30m = download_us_history(symbol, "30m", data_config)
-    frame_60m = download_us_history(symbol, "60m", data_config)
+    frame_30m = load_intraday_history(symbol, "30m", intraday_config)
+    frame_60m = load_intraday_history(symbol, "60m", intraday_config)
     if frame_30m.empty or frame_60m.empty:
         return None
 

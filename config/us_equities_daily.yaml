@@ -35,6 +35,10 @@ signal:
   monthly_filter_enabled: true
   require_sector_resonance: false
 
+strategies:
+  extra_enabled_codes: []
+  disabled_codes: []
+
 intraday:
   enabled: false
   source: "yfinance"
@@ -47,6 +51,17 @@ intraday:
   min_2h_bars: 40
   min_3h_bars: 30
   min_4h_bars: 25
+  sqlite_db_path: "~/us_stock_intraday_data/us_stock_intraday.db"
+  sqlite_table_by_timeframe:
+    "30m": "bars_30m"
+    "60m": "bars_60m"
+  sqlite_symbol_column: "symbol"
+  sqlite_datetime_column: "datetime"
+  sqlite_open_column: "open"
+  sqlite_high_column: "high"
+  sqlite_low_column: "low"
+  sqlite_close_column: "close"
+  sqlite_volume_column: "volume"
 
 macd:
   fast_period: 12

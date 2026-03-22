@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from app.us_equities.config import USEquitiesSignalConfig, USEquitiesUniverseConfig
+from app.us_equities.config import USEquitiesSignalConfig, USEquitiesStrategyConfig, USEquitiesUniverseConfig
 
 
 @dataclass(slots=True)
@@ -49,6 +49,25 @@ def _base_candidate(
     }
 
 
+def _recommended_intraday_plan() -> dict[str, object]:
+    return {
+        "entry_execution_timeframe": "30m",
+        "confirmation_timeframes": "1h/2h/3h/4h",
+        "max_resonance_timeframe": "4h",
+        "recommended_hold_window": "1-4周",
+        "recommended_option_tenor": "月期权优先",
+        "recommended_stop_timeframe": "1h",
+        "recommended_stop_reference": "1小时蓝梯下边缘",
+        "sell_level_aggressive": "30m",
+        "sell_level_standard": "1h",
+        "sell_level_conservative": "4h",
+        "sell_reference_aggressive": "30分钟蓝梯下边缘",
+        "sell_reference_standard": "1小时蓝梯下边缘",
+        "sell_reference_conservative": "4小时蓝梯下边缘",
+        "recommended_sell_level": "standard",
+    }
+
+
 def _evaluate_daily_bottom_breakout(context: StrategyContext) -> dict[str, object] | None:
     daily = context.state["1d"]
     weekly = context.state["1w"]
@@ -68,7 +87,7 @@ def _evaluate_daily_bottom_breakout(context: StrategyContext) -> dict[str, objec
     if context.market_regime == "risk_on":
         score += 4
     score += min(8.0, float(context.sector_context["sector_score"]) * 0.4)
-    return _base_candidate(
+    candidate = _base_candidate(
         context,
         strategy_type="daily_bottom_breakout",
         score=score,
@@ -76,6 +95,17 @@ def _evaluate_daily_bottom_breakout(context: StrategyContext) -> dict[str, objec
         entry_note="日线 MRMC 抄底后，价格右侧站上蓝梯",
         risk_note="日线蓝梯下边缘失守则离场",
     )
+    candidate["recommended_stop_timeframe"] = "1d"
+    candidate["recommended_stop_reference"] = "日线蓝梯下边缘"
+    candidate["recommended_hold_window"] = "数日至数周"
+    candidate["sell_level_aggressive"] = "1d"
+    candidate["sell_level_standard"] = "1d"
+    candidate["sell_level_conservative"] = "1w"
+    candidate["sell_reference_aggressive"] = "日线蓝梯下边缘"
+    candidate["sell_reference_standard"] = "日线蓝梯下边缘"
+    candidate["sell_reference_conservative"] = "周线蓝梯下边缘"
+    candidate["recommended_sell_level"] = "standard"
+    return candidate
 
 
 def _evaluate_blue_above_yellow_trend_daily(context: StrategyContext) -> dict[str, object] | None:
@@ -94,7 +124,7 @@ def _evaluate_blue_above_yellow_trend_daily(context: StrategyContext) -> dict[st
     if context.market_regime == "risk_on":
         score += 3
     score += min(8.0, float(context.sector_context["sector_score"]) * 0.35)
-    return _base_candidate(
+    candidate = _base_candidate(
         context,
         strategy_type="blue_above_yellow_trend_daily",
         score=score,
@@ -102,6 +132,17 @@ def _evaluate_blue_above_yellow_trend_daily(context: StrategyContext) -> dict[st
         entry_note="日线蓝梯稳定在黄梯之上，价格维持在蓝梯上方",
         risk_note="日线蓝梯下边缘失守则离场",
     )
+    candidate["recommended_stop_timeframe"] = "1d"
+    candidate["recommended_stop_reference"] = "日线蓝梯下边缘"
+    candidate["recommended_hold_window"] = "数周至数月"
+    candidate["sell_level_aggressive"] = "1d"
+    candidate["sell_level_standard"] = "1d"
+    candidate["sell_level_conservative"] = "1w"
+    candidate["sell_reference_aggressive"] = "日线蓝梯下边缘"
+    candidate["sell_reference_standard"] = "日线蓝梯下边缘"
+    candidate["sell_reference_conservative"] = "周线蓝梯下边缘"
+    candidate["recommended_sell_level"] = "standard"
+    return candidate
 
 
 def _evaluate_daily_sweet_spot(context: StrategyContext) -> dict[str, object] | None:
@@ -122,7 +163,7 @@ def _evaluate_daily_sweet_spot(context: StrategyContext) -> dict[str, object] | 
     if context.market_regime == "risk_on":
         score += 2
     score += min(10.0, float(context.sector_context["sector_score"]) * 0.5)
-    return _base_candidate(
+    candidate = _base_candidate(
         context,
         strategy_type="daily_sweet_spot",
         score=score,
@@ -130,6 +171,17 @@ def _evaluate_daily_sweet_spot(context: StrategyContext) -> dict[str, object] | 
         entry_note="突破蓝黄梯后回踩支撑，符合日线甜点结构",
         risk_note="日线蓝梯下边缘失守则离场",
     )
+    candidate["recommended_stop_timeframe"] = "1d"
+    candidate["recommended_stop_reference"] = "日线蓝梯或黄梯支撑位"
+    candidate["recommended_hold_window"] = "数日至数周"
+    candidate["sell_level_aggressive"] = "1d_blue"
+    candidate["sell_level_standard"] = "1d_yellow"
+    candidate["sell_level_conservative"] = "1w_blue"
+    candidate["sell_reference_aggressive"] = "日线蓝梯下边缘"
+    candidate["sell_reference_standard"] = "日线黄梯或关键回踩支撑"
+    candidate["sell_reference_conservative"] = "周线蓝梯下边缘"
+    candidate["recommended_sell_level"] = "standard"
+    return candidate
 
 
 def _evaluate_weekly_trend_resonance(context: StrategyContext) -> dict[str, object] | None:
@@ -146,7 +198,7 @@ def _evaluate_weekly_trend_resonance(context: StrategyContext) -> dict[str, obje
     if context.market_regime == "risk_on":
         score += 2
     score += min(10.0, float(context.sector_context["sector_score"]) * 0.45)
-    return _base_candidate(
+    candidate = _base_candidate(
         context,
         strategy_type="weekly_trend_resonance",
         score=score,
@@ -154,6 +206,17 @@ def _evaluate_weekly_trend_resonance(context: StrategyContext) -> dict[str, obje
         entry_note="周线趋势走强，日线同步维持右侧结构",
         risk_note="周线蓝梯下边缘失守则离场",
     )
+    candidate["recommended_stop_timeframe"] = "1w"
+    candidate["recommended_stop_reference"] = "周线蓝梯下边缘"
+    candidate["recommended_hold_window"] = "数周至数月"
+    candidate["sell_level_aggressive"] = "1d"
+    candidate["sell_level_standard"] = "1w"
+    candidate["sell_level_conservative"] = "1w_yellow"
+    candidate["sell_reference_aggressive"] = "日线蓝梯下边缘"
+    candidate["sell_reference_standard"] = "周线蓝梯下边缘"
+    candidate["sell_reference_conservative"] = "周线黄梯下边缘"
+    candidate["recommended_sell_level"] = "standard"
+    return candidate
 
 
 def _evaluate_4321_intraday_resonance(context: StrategyContext) -> dict[str, object] | None:
@@ -186,7 +249,7 @@ def _evaluate_4321_intraday_resonance(context: StrategyContext) -> dict[str, obj
     if context.market_regime == "risk_on":
         score += 4
     score += min(10.0, float(context.sector_context["sector_score"]) * 0.5)
-    return _base_candidate(
+    candidate = _base_candidate(
         context,
         strategy_type="4321_intraday_resonance",
         score=score,
@@ -194,6 +257,18 @@ def _evaluate_4321_intraday_resonance(context: StrategyContext) -> dict[str, obj
         entry_note="1/2/3/4小时 MRMC 共振抄底，30分钟右侧突破蓝梯",
         risk_note="优先看30分钟或1小时蓝梯下边缘",
     )
+    candidate.update(_recommended_intraday_plan())
+    candidate["setup_bottom_resonance_1h"] = bool(tf_1h["bottom_recent"])
+    candidate["setup_bottom_resonance_2h"] = bool(tf_2h["bottom_recent"])
+    candidate["setup_bottom_resonance_3h"] = bool(tf_3h["bottom_recent"])
+    candidate["setup_bottom_resonance_4h"] = bool(tf_4h["bottom_recent"])
+    candidate["setup_breakout_30m"] = bool(tf_30m["breakout_recent"])
+    candidate["setup_close_above_blue_1h"] = bool(tf_1h["close_above_blue"])
+    candidate["setup_sell_recent_1h"] = bool(tf_1h["sell_recent"])
+    candidate["higher_tf_support_daily"] = bool(daily["bullish_ok"])
+    candidate["higher_tf_support_weekly"] = bool(weekly["trend_ok"])
+    candidate["position_style"] = "事件驱动波段"
+    return candidate
 
 
 STRATEGY_REGISTRY: tuple[StrategyDefinition, ...] = (
@@ -248,6 +323,26 @@ STRATEGY_REGISTRY: tuple[StrategyDefinition, ...] = (
 def evaluate_registered_strategies(context: StrategyContext) -> list[dict[str, object]]:
     candidates: list[dict[str, object]] = []
     for strategy in STRATEGY_REGISTRY:
+        candidate = strategy.evaluator(context)
+        if candidate is not None:
+            candidates.append(candidate)
+    return candidates
+
+
+def get_enabled_strategies(strategy_config: USEquitiesStrategyConfig | None = None) -> tuple[StrategyDefinition, ...]:
+    strategy_config = strategy_config or USEquitiesStrategyConfig()
+    default_codes = {strategy.code for strategy in STRATEGY_REGISTRY if strategy.enabled_by_default}
+    enabled_codes = default_codes | set(strategy_config.extra_enabled_codes)
+    enabled_codes -= set(strategy_config.disabled_codes)
+    return tuple(strategy for strategy in STRATEGY_REGISTRY if strategy.code in enabled_codes)
+
+
+def evaluate_enabled_strategies(
+    context: StrategyContext,
+    strategy_config: USEquitiesStrategyConfig | None = None,
+) -> list[dict[str, object]]:
+    candidates: list[dict[str, object]] = []
+    for strategy in get_enabled_strategies(strategy_config):
         candidate = strategy.evaluator(context)
         if candidate is not None:
             candidates.append(candidate)

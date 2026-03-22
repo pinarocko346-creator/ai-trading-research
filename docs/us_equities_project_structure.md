@@ -24,6 +24,12 @@
 - `app/us_equities/pipeline.py`
   日线主扫描流水线，负责串联数据库、指数过滤、板块评分和候选输出。
 
+- `app/us_equities/intraday.py`
+  `4321` 多周期共振的状态构建与策略接入点。
+
+- `app/us_equities/intraday_data.py`
+  多周期数据加载层，统一封装 `sqlite / yfinance` 数据来源。
+
 - `config/us_equities_daily.yaml`
   日线版配置文件。
 
@@ -58,7 +64,7 @@
 等你补齐 timeframe 数据后，只需要：
 
 1. 打开 `intraday.enabled`
-2. 替换 `intraday` 数据源实现
+2. 配置分钟级数据库或临时数据源
 
 就可以直接进入主流水线，不需要重构日线项目骨架。
 

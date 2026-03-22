@@ -47,6 +47,17 @@
 - 可以逐步演进为更完整的配置化策略系统
 - 避免策略逻辑散落在多个 `if/else` 中
 
+当前策略开关配置：
+
+- `config/us_equities_daily.yaml`
+- `strategies.extra_enabled_codes`
+- `strategies.disabled_codes`
+
+建议理解：
+
+- `extra_enabled_codes`：在默认启用集合之外，额外打开策略
+- `disabled_codes`：把默认策略或额外策略关闭
+
 ## 2. 指标定义
 
 ### 2.1 MRMC
@@ -320,6 +331,35 @@
   - 日线 `bullish_ok`
   - 或周线 `trend_ok`
 
+### 当前输出字段
+
+`4321_intraday_resonance` 当前会额外输出：
+
+- `setup_bottom_resonance_1h`
+- `setup_bottom_resonance_2h`
+- `setup_bottom_resonance_3h`
+- `setup_bottom_resonance_4h`
+- `setup_breakout_30m`
+- `setup_close_above_blue_1h`
+- `setup_sell_recent_1h`
+- `higher_tf_support_daily`
+- `higher_tf_support_weekly`
+- `entry_execution_timeframe`
+- `confirmation_timeframes`
+- `max_resonance_timeframe`
+- `recommended_hold_window`
+- `recommended_option_tenor`
+- `recommended_sell_level`
+- `recommended_stop_timeframe`
+- `recommended_stop_reference`
+- `sell_level_aggressive`
+- `sell_reference_aggressive`
+- `sell_level_standard`
+- `sell_reference_standard`
+- `sell_level_conservative`
+- `sell_reference_conservative`
+- `position_style`
+
 ### 逻辑解释
 
 - 多个小时级别共振负责提高确定性
@@ -328,6 +368,18 @@
 ### 卖点参考
 
 - 优先看 `30m` 或 `1h` 蓝梯下边缘
+
+### 卖点级别映射
+
+- `aggressive`：`30m` 蓝梯下边缘，适合超短执行
+- `standard`：`1h` 蓝梯下边缘，作为当前默认卖点级别
+- `conservative`：`4h` 蓝梯下边缘，适合更强容忍波动的波段持有
+
+当前默认输出：
+
+- `recommended_sell_level = standard`
+- `recommended_stop_timeframe = 1h`
+- `recommended_stop_reference = 1小时蓝梯下边缘`
 
 ### 所需 timeframe
 
@@ -351,6 +403,7 @@
 ### 启用方式
 
 - 打开 `config/us_equities_daily.yaml` 中的 `intraday.enabled: true`
+- 在 `strategies.extra_enabled_codes` 中加入 `4321_intraday_resonance`
 - 再将 `intraday` 数据源切换到后续的本地分钟库
 
 ## 7. 时间框架支持矩阵
@@ -402,7 +455,7 @@
 当前还未正式完成：
 
 - 分钟级本地数据库接入
-- `4321` 默认启用
+- `4321` 是否默认启用的策略决策
 - 更完整的行业 / 主题分类
 - 回测与绩效归因
 - 自动执行清单生成
@@ -412,7 +465,7 @@
 最推荐的后续工作顺序：
 
 1. 接入分钟级本地数据库
-2. 正式启用 `4321`
+2. 在 `strategies.extra_enabled_codes` 中正式启用 `4321`
 3. 将策略从硬编码改成注册表
 4. 扩充板块篮子
 5. 增加回测和日报模块

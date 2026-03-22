@@ -49,6 +49,12 @@ class USEquitiesSignalConfig:
 
 
 @dataclass(slots=True)
+class USEquitiesStrategyConfig:
+    extra_enabled_codes: list[str] = field(default_factory=list)
+    disabled_codes: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
 class USEquitiesIntradayConfig:
     enabled: bool = False
     source: str = "yfinance"
@@ -61,6 +67,20 @@ class USEquitiesIntradayConfig:
     min_2h_bars: int = 40
     min_3h_bars: int = 30
     min_4h_bars: int = 25
+    sqlite_db_path: str = "~/us_stock_intraday_data/us_stock_intraday.db"
+    sqlite_table_by_timeframe: dict[str, str] = field(
+        default_factory=lambda: {
+            "30m": "bars_30m",
+            "60m": "bars_60m",
+        }
+    )
+    sqlite_symbol_column: str = "symbol"
+    sqlite_datetime_column: str = "datetime"
+    sqlite_open_column: str = "open"
+    sqlite_high_column: str = "high"
+    sqlite_low_column: str = "low"
+    sqlite_close_column: str = "close"
+    sqlite_volume_column: str = "volume"
 
 
 @dataclass(slots=True)

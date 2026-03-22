@@ -1,0 +1,25 @@
+strategies:
+  extra_enabled_codes:
+    - "4321_intraday_resonance"
+  disabled_codes: []
+
+intraday:
+  enabled: true
+  source: "sqlite"
+  sqlite_db_path: "~/us_stock_intraday_data/us_stock_intraday.db"
+  sqlite_table_by_timeframe:
+    "30m": "bars_30m"
+    "60m": "bars_60m"
+  sqlite_symbol_column: "symbol"
+  sqlite_datetime_column: "datetime"
+  sqlite_open_column: "open"
+  sqlite_high_column: "high"
+  sqlite_low_column: "low"
+  sqlite_close_column: "close"
+  sqlite_volume_column: "volume"
+  max_symbols: 300
+  min_30m_bars: 40
+  min_1h_bars: 80
+  min_2h_bars: 40
+  min_3h_bars: 30
+  min_4h_bars: 25

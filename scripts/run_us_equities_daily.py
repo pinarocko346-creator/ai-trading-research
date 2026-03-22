@@ -19,6 +19,7 @@ from app.us_equities.config import (
     USEquitiesMarketConfig,
     USEquitiesSectorConfig,
     USEquitiesSignalConfig,
+    USEquitiesStrategyConfig,
     USEquitiesUniverseConfig,
 )
 from app.us_equities.pipeline import run_daily_pipeline
@@ -32,6 +33,7 @@ def _build_summary(results, summary: dict[str, object], top_n: int) -> str:
         f"正向指数数量: {summary['market_positive_index_count']}",
         f"股票池数量: {summary.get('universe_size', 0)}",
         f"有效扫描数量: {summary.get('state_count', 0)}",
+        f"启用策略: {', '.join(summary.get('enabled_strategy_codes', []))}",
         f"多周期扫描数量: {summary.get('intraday_symbols_processed', 0)}",
         f"4321 候选数量: {summary.get('intraday_candidate_count', 0)}",
     ]
@@ -65,6 +67,7 @@ def main() -> None:
     market_config = USEquitiesMarketConfig(**config["market"])
     signal_config = USEquitiesSignalConfig(**config["signal"])
     sector_config = USEquitiesSectorConfig(**config["sectors"])
+    strategy_config = USEquitiesStrategyConfig(**config.get("strategies", {}))
     intraday_config = USEquitiesIntradayConfig(**config.get("intraday", {}))
     macd_config = MRMCMacdConfig(**config.get("macd", {}))
 
@@ -74,6 +77,7 @@ def main() -> None:
         market_config=market_config,
         signal_config=signal_config,
         sector_config=sector_config,
+        strategy_config=strategy_config,
         intraday_config=intraday_config,
         macd_config=macd_config,
     )
