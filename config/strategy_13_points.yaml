@@ -7,6 +7,7 @@ signals:
     - double_breakout
     - strength_emergence
     - jumping_creek
+    - cup_with_handle_watch
     - cup_with_handle
     - pullback_confirmation
     - n_breakout
@@ -16,7 +17,8 @@ signals:
     - first_rebound_after_crash
 ingest:
   source: sqlite
-  sqlite_db_path: /Users/apple/.openclaw/workspace/a-stock-strategy/a_share_historical.db
+  adjust: hfq
+  sqlite_db_path: ~/a_share_daily_data/a_share_daily.db
 thresholds:
   min_volume_ratio: 1.2
   min_body_pct: 0.02
@@ -42,6 +44,9 @@ thresholds:
   double_breakout_prior_below_tolerance_pct: 0.003
   double_breakout_min_breakout_pct: 0.01
   double_breakout_prep_tight_range_pct: 0.12
+  double_breakout_min_ma20_over_ma60_pct: 1.0
+  double_breakout_max_intraday_pullback_pct: 0.003
+  double_breakout_prior_volume_dryup_max_ratio: 0.95
   climax_volume_ratio: 1.8
   climax_drawdown_pct: 0.12
   climax_reversal_min_body_pct: 0.015
@@ -71,8 +76,13 @@ thresholds:
   creek_prior_below_bars: 4
   creek_prior_below_tolerance_pct: 0.005
   creek_min_breakout_pct: 0.02
+  creek_min_ma20_over_ma60_pct: 1.0
+  creek_max_intraday_pullback_pct: 0.005
+  creek_prior_volume_dryup_max_ratio: 0.95
+  creek_min_breakout_close_to_high_pct: 0.99
   cup_base_lookback: 55
   cup_base_min_bars: 28
+  cup_short_handle_min_cup_bars: 24
   cup_prior_trend_lookback: 20
   cup_prior_uptrend_min_pct: 0.12
   cup_min_depth_pct: 0.12
@@ -80,16 +90,54 @@ thresholds:
   cup_min_side_bars: 8
   cup_min_recovery_pct: 0.95
   cup_min_symmetry_ratio: 0.45
+  cup_round_max_curve_error_pct: 0.18
+  cup_round_max_low_position_offset: 0.16
+  cup_handle_short_min_bars: 2
   cup_handle_min_bars: 3
   cup_handle_max_bars: 8
+  cup_handle_short_max_depth_pct: 0.13
   cup_handle_max_depth_pct: 0.08
+  cup_handle_short_max_range_pct: 0.13
   cup_handle_max_range_pct: 0.1
   cup_handle_min_position_pct: 0.6
+  cup_handle_short_max_volume_dryup_ratio: 1.05
   cup_handle_max_volume_dryup_ratio: 0.9
+  cup_watch_near_resistance_pct: 0.01
+  cup_watch_min_close_in_range: 0.7
+  cup_watch_min_volume_ratio: 1.1
+  cup_short_handle_min_breakout_pct: 0.05
   cup_breakout_pct: 0.01
   cup_breakout_min_body_pct: 0.018
   cup_breakout_min_close_in_range: 0.82
   cup_breakout_min_volume_ratio: 1.3
+  cup_strict_base_lookback: 75
+  cup_strict_prior_rise_lookback: 60
+  cup_strict_prior_rise_min_pct: 0.3
+  cup_strict_min_depth_pct: 0.15
+  cup_strict_max_depth_pct: 0.35
+  cup_strict_min_cup_bars: 30
+  cup_strict_min_recovery_pct: 0.9
+  cup_strict_handle_min_bars: 5
+  cup_strict_handle_max_bars: 15
+  cup_strict_handle_max_depth_vs_cup: 0.3333333333
+  cup_strict_handle_max_bars_ratio: 0.3333333333
+  cup_strict_handle_min_position_pct: 0.5
+  cup_strict_handle_max_volume_dryup_ratio: 0.95
+  cup_strict_breakout_min_volume_ratio_50: 1.4
+  cup_leader_base_lookback: 95
+  cup_leader_prior_rise_lookback: 120
+  cup_leader_prior_rise_min_pct: 0.5
+  cup_leader_ma60_rising_lookback: 10
+  cup_leader_min_market_cap: 20000000000.0
+  cup_leader_min_down_bars: 12
+  cup_leader_min_up_bars: 12
+  cup_leader_min_cup_bars: 30
+  cup_leader_handle_min_bars: 5
+  cup_leader_handle_max_bars: 15
+  cup_leader_handle_min_depth_pct: 0.05
+  cup_leader_handle_max_depth_pct: 0.10
+  cup_leader_handle_max_volume_dryup_ratio: 0.95
+  cup_leader_breakout_min_volume_ratio_50: 1.4
   n_breakout_pullback_window: 15
   n_breakout_min_volume_ratio: 1.05
   n_breakout_min_close_in_range: 0.65
@@ -97,6 +145,22 @@ thresholds:
   n_breakout_min_pullback_bars: 2
   n_breakout_max_pullback_bars: 10
   support_flip_lookback: 30
+  support_flip_min_breakout_volume_ratio: 1.3
+  support_flip_min_breakout_body_pct: 0.018
+  support_flip_min_breakout_close_in_range: 0.8
+  support_flip_prior_below_bars: 3
+  support_flip_prior_below_tolerance_pct: 0.003
+  support_flip_pullback_min_bars: 3
+  support_flip_pullback_max_bars: 10
+  support_flip_pullback_tolerance_pct: 0.02
+  support_flip_max_close_below_level_pct: 0.01
+  support_flip_max_pullback_volume_ratio: 0.95
+  support_flip_reclaim_min_volume_ratio: 1.1
+  support_flip_reclaim_min_close_in_range: 0.75
+  support_flip_reclaim_min_body_pct: 0.01
+  support_flip_reclaim_min_rebound_from_low_pct: 0.015
+  support_flip_reclaim_above_prev_high_buffer_pct: 0.0
+  support_flip_reclaim_buffer_pct: 0.002
   spring_break_pct: 0.01
   pattern_lookback: 30
   pattern_min_width_pct: 0.08

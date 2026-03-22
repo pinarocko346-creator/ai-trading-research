@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
 
 from app.core.types import ResearchSignal
 from app.data.market_context import MarketFilterConfig, score_market_snapshot
-from app.data.sector_context import SectorFilterConfig, build_symbol_theme_payload
+from app.data.sector_context import (
+    SectorFilterConfig,
+    build_symbol_theme_payload,
+    fetch_concept_rankings,
+    fetch_industry_rankings,
+    load_sector_snapshot,
+)
 from app.report.report_builder import build_daily_report
 from app.strategy.scanner import _filter_ok, _market_score_adjustment, _sector_band, _sector_score_adjustment
 
@@ -125,6 +134,41 @@ class ThreeLayerFilterTests(unittest.TestCase):
         )
         self.assertTrue(strong_allowed)
         self.assertFalse(weak_blocked)
+
+    def test_sector_snapshot_falls_back_to_latest_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            cache_dir = Path(tmp_dir)
+            industry_rankings = pd.DataFrame(
+                [
+                    {"板块名称": "电力", "涨跌幅": 2.0, "换手率": 3.0, "上涨家数": 20, "下跌家数": 5, "领涨股票-涨跌幅": 6.0, "score": 72.0},
+                ]
+            )
+            concept_rankings = pd.DataFrame(
+                [
+                    {"板块名称": "中特估", "涨跌幅": 1.5, "换手率": 2.5, "上涨家数": 18, "下跌家数": 6, "领涨股票-涨跌幅": 5.0, "score": 68.0},
+                ]
+            )
+            industry_rankings.to_parquet(cache_dir / "industry_rankings_20260318.parquet", index=False)
+            concept_rankings.to_parquet(cache_dir / "concept_rankings_20260318.parquet", index=False)
+            (cache_dir / "symbol_themes_v2_20260318.json").write_text(
+                json.dumps(
+                    {
+                        "000001": {
+                            "industry_name": "电力",
+                            "concept_names": ["中特估"],
+                        }
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            config = SectorFilterConfig(cache_dir=cache_dir)
+            snapshot = load_sector_snapshot(config)
+
+            self.assertEqual(snapshot["symbol_theme_map"]["000001"]["industry_name"], "电力")
+            self.assertEqual(fetch_industry_rankings(config).iloc[0]["板块名称"], "电力")
+            self.assertEqual(fetch_concept_rankings(config).iloc[0]["板块名称"], "中特估")
 
     def test_sector_band_marks_crowded_and_edge_zones(self) -> None:
         config = SectorFilterConfig(crowded_min_score=65.0, min_sector_score=50.0, edge_high_min_score=40.0, edge_low_min_score=30.0)

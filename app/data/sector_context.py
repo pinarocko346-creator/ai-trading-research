@@ -44,6 +44,12 @@ def _mapping_cache_path(config: SectorFilterConfig) -> Path:
     return config.cache_dir / f"symbol_themes_v2_{_date_stamp()}.json"
 
 
+def _latest_cache_path(pattern: str, config: SectorFilterConfig) -> Path | None:
+    config.cache_dir.mkdir(parents=True, exist_ok=True)
+    matches = sorted(config.cache_dir.glob(pattern), reverse=True)
+    return matches[0] if matches else None
+
+
 def _score_board_row(row: pd.Series) -> float:
     pct_chg = float(pd.to_numeric(row.get("涨跌幅"), errors="coerce") or 0.0)
     turnover = float(pd.to_numeric(row.get("换手率"), errors="coerce") or 0.0)
@@ -65,8 +71,11 @@ def _load_or_fetch_rankings(
     config: SectorFilterConfig,
 ) -> pd.DataFrame:
     cache_file = _rankings_cache_path(cache_name, config)
+    fallback_cache = _latest_cache_path(f"{cache_name}_*.parquet", config)
     if cache_file.exists():
         return pd.read_parquet(cache_file)
+    if fallback_cache is not None:
+        return pd.read_parquet(fallback_cache)
     frame = fetcher().copy()
     frame["score"] = frame.apply(_score_board_row, axis=1)
     frame.to_parquet(cache_file, index=False)
@@ -96,6 +105,7 @@ def fetch_concept_rankings(config: SectorFilterConfig | None = None) -> pd.DataF
 def load_sector_snapshot(config: SectorFilterConfig | None = None) -> dict[str, object]:
     config = config or SectorFilterConfig()
     mapping_cache = _mapping_cache_path(config)
+    fallback_mapping_cache = _latest_cache_path("symbol_themes_v2_*.json", config)
     industry_rankings = fetch_industry_rankings(config)
     concept_rankings = fetch_concept_rankings(config)
     industry_score_map = {
@@ -107,8 +117,9 @@ def load_sector_snapshot(config: SectorFilterConfig | None = None) -> dict[str, 
         for _, row in concept_rankings.iterrows()
     }
 
-    if mapping_cache.exists():
-        symbol_theme_map = json.loads(mapping_cache.read_text(encoding="utf-8"))
+    if mapping_cache.exists() or fallback_mapping_cache is not None:
+        cache_to_use = mapping_cache if mapping_cache.exists() else fallback_mapping_cache
+        symbol_theme_map = json.loads(cache_to_use.read_text(encoding="utf-8"))
         return {
             "industry_rankings": industry_rankings,
             "concept_rankings": concept_rankings,

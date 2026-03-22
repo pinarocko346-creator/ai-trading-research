@@ -26,7 +26,7 @@ def build_daily_report(
     chart_map: dict[str, str] | None = None,
     report_context: dict[str, object] | None = None,
 ) -> str:
-    lines = ["# 13买点研究报告", ""]
+    lines = ["# 14买点研究报告", ""]
     chart_map = chart_map or {}
     report_context = report_context or {}
     metrics = summarize_trades(trades)

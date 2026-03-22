@@ -1,0 +1,3 @@
+﻿symbol,strategy_type,score,market_regime,market_positive_index_count,trigger_timeframe,entry_note,risk_note,daily_price,daily_avg_volume_20,daily_avg_dollar_volume_20,daily_blue_above_yellow,daily_close_above_blue,hour_bottom_recent,hour_close_above_blue,hour_blue_above_yellow,min30_breakout_recent,h2_bottom_recent,h3_bottom_recent,h4_bottom_recent
+AMD,sweet_spot_hourly,88.0,risk_off,0,1h,突破蓝黄梯后回踩支撑，符合甜点结构,黄色梯子或1小时蓝梯支撑失效则离场,201.3300018310547,34864825.9,7030049846.226756,False,False,False,True,True,True,False,False,False
+NET,blue_above_yellow_trend_daily,82.0,risk_off,0,1d,蓝梯稳定在黄梯之上，价格维持在蓝梯上方,日线蓝梯下边缘失守则离场,215.4199981689453,3907938.1,753505573.255333,True,True,False,False,True,False,False,False,False

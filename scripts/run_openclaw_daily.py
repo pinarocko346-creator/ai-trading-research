@@ -13,7 +13,7 @@ import pandas as pd
 import yaml
 
 from app.backtest.engine import BacktestConfig, run_signal_backtest
-from app.data.ingest import DataIngestConfig, fetch_a_share_history, resolve_sqlite_db_path
+from app.data.ingest import DataIngestConfig, fetch_a_share_history, resolve_sqlite_db_path, sqlite_price_table
 from app.data.market_context import MarketFilterConfig
 from app.data.sector_context import SectorFilterConfig
 from app.data.universe import UniverseConfig
@@ -69,13 +69,14 @@ def _build_sqlite_status(ingest_config: DataIngestConfig, *, max_staleness_days:
         return status
 
     db_path = resolve_sqlite_db_path(ingest_config)
-    query = """
-        SELECT
-            MAX(date) AS latest_trade_date,
-            COUNT(DISTINCT code) AS symbol_count
-        FROM kline_data
-    """
     with closing(sqlite3.connect(db_path)) as conn:
+        table_name = sqlite_price_table(conn)
+        query = f"""
+            SELECT
+                MAX(date) AS latest_trade_date,
+                COUNT(DISTINCT code) AS symbol_count
+            FROM {table_name}
+        """
         row = pd.read_sql_query(query, conn).iloc[0]
 
     latest_trade_date = row.get("latest_trade_date")
@@ -94,7 +95,7 @@ def _build_sqlite_status(ingest_config: DataIngestConfig, *, max_staleness_days:
 
 def _build_summary(top_rows: pd.DataFrame, manifest: dict[str, object]) -> str:
     lines = [
-        "A股13买点 OpenClaw 日任务摘要",
+        "A股14买点 OpenClaw 日任务摘要",
         f"run_id: {manifest['run_id']}",
         f"生成时间: {manifest['generated_at']}",
         f"股票池范围: {manifest['universe_scope']}",

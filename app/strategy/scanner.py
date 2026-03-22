@@ -13,6 +13,8 @@ from app.strategy.rules import RuleThresholds, build_signal_catalog, scan_signal
 from app.strategy.scoring import rank_signals, score_signal
 
 BREAKOUT_NORMALIZATION_PRIORITY = {
+    "cup_with_handle_leader": 6,
+    "cup_with_handle_strict": 5,
     "cup_with_handle": 4,
     "jumping_creek": 3,
     "n_breakout": 2,
@@ -22,7 +24,10 @@ BREAKOUT_NORMALIZATION_PRIORITY = {
 TREND_SIGNAL_TYPES = {
     "double_breakout",
     "jumping_creek",
+    "cup_with_handle_watch",
     "cup_with_handle",
+    "cup_with_handle_strict",
+    "cup_with_handle_leader",
     "pullback_confirmation",
     "n_breakout",
     "support_resistance_flip",
@@ -41,6 +46,7 @@ REVERSAL_SIGNAL_TYPES = {
 
 CANDIDATE_DISABLED_SIGNAL_TYPES = {
     "selling_climax",
+    "cup_with_handle_watch",
     "pullback_confirmation",
 }
 
@@ -156,7 +162,10 @@ def score_signal_quality(signal) -> float:
         "pattern_breakout": 2.0,
         "first_rebound_after_crash": 2.0,
         "spring": 2.0,
+        "cup_with_handle_watch": -10.0,
         "cup_with_handle": 6.0,
+        "cup_with_handle_strict": 8.0,
+        "cup_with_handle_leader": 10.0,
         "pullback_confirmation": -6.0,
         "n_breakout": -12.0,
         "double_breakout": -18.0,
@@ -206,7 +215,7 @@ def score_signal_quality(signal) -> float:
     if signal.factors.get("reclaim_in_time") is True:
         score += 2.0
 
-    if signal.signal_type == "cup_with_handle":
+    if signal.signal_type in {"cup_with_handle", "cup_with_handle_strict", "cup_with_handle_leader"}:
         handle_depth_pct = _numeric_factor(signal, "handle_depth_pct")
         if handle_depth_pct is not None:
             if handle_depth_pct <= 0.06:
@@ -235,6 +244,65 @@ def score_signal_quality(signal) -> float:
                 score += 4.0
             elif handle_low_position_pct < 0.55:
                 score -= 6.0
+        if signal.signal_type in {"cup_with_handle_strict", "cup_with_handle_leader"}:
+            prior_rise_60_pct = _numeric_factor(signal, "prior_rise_60_pct")
+            if prior_rise_60_pct is not None:
+                if prior_rise_60_pct >= 0.45:
+                    score += 4.0
+                elif prior_rise_60_pct < 0.3:
+                    score -= 8.0
+            handle_depth_vs_cup_pct = _numeric_factor(signal, "handle_depth_vs_cup_pct")
+            if handle_depth_vs_cup_pct is not None:
+                if handle_depth_vs_cup_pct <= 0.25:
+                    score += 4.0
+                elif handle_depth_vs_cup_pct > 0.3334:
+                    score -= 8.0
+            volume_ratio_50 = _numeric_factor(signal, "volume_ratio_50")
+            if volume_ratio_50 is not None:
+                if volume_ratio_50 >= 1.8:
+                    score += 5.0
+                elif volume_ratio_50 >= 1.4:
+                    score += 3.0
+                else:
+                    score -= 8.0
+        if signal.signal_type == "cup_with_handle_leader":
+            prior_rise_6m_pct = _numeric_factor(signal, "prior_rise_6m_pct")
+            if prior_rise_6m_pct is not None:
+                if prior_rise_6m_pct >= 0.8:
+                    score += 5.0
+                elif prior_rise_6m_pct >= 0.5:
+                    score += 3.0
+                else:
+                    score -= 8.0
+            if signal.factors.get("ma60_rising") is True:
+                score += 3.0
+            if signal.factors.get("progressive_lows_ok") is True:
+                score += 5.0
+            if signal.factors.get("market_cap_ok") is True and signal.factors.get("market_cap_check_skipped") is False:
+                score += 2.0
+    elif signal.signal_type == "support_resistance_flip":
+        pullback_volume_ratio = _numeric_factor(signal, "pullback_volume_ratio")
+        if pullback_volume_ratio is not None:
+            if pullback_volume_ratio <= 0.75:
+                score += 5.0
+            elif pullback_volume_ratio <= 0.95:
+                score += 2.0
+            else:
+                score -= 6.0
+        pullback_bars = _numeric_factor(signal, "pullback_bars")
+        if pullback_bars is not None:
+            if 3 <= pullback_bars <= 7:
+                score += 4.0
+            elif pullback_bars > 10:
+                score -= 6.0
+        if signal.factors.get("close_hold_ok") is True:
+            score += 4.0
+        breakout_volume_ratio = _numeric_factor(signal, "breakout_volume_ratio")
+        if breakout_volume_ratio is not None:
+            if breakout_volume_ratio >= 1.8:
+                score += 3.0
+            elif breakout_volume_ratio < 1.2:
+                score -= 4.0
     elif signal.signal_type in {"double_breakout", "jumping_creek", "n_breakout", "pattern_breakout"}:
         if signal.factors.get("prep_tight") is False:
             score -= 4.0
@@ -325,6 +393,9 @@ def scan_market(
             history = fetch_a_share_history(symbol, ingest_config)
         except Exception:
             continue
+        for extra_column in ("market_cap", "float_market_cap", "total_mv", "float_mv"):
+            if extra_column in row.index and pd.notna(row[extra_column]):
+                history[extra_column] = row[extra_column]
         signals = scan_signals(
             history,
             symbol=symbol,

@@ -40,9 +40,23 @@ export OPENCLAW_OUTPUT_ROOT="$HOME/.openclaw/workspace/ai-trading-research/resul
 export OPENCLAW_UNIVERSE_SCOPE="tradeable"
 export OPENCLAW_MAX_SYMBOLS="0"
 export OPENCLAW_TOP_N="20"
-export OPENCLAW_SQLITE_DB_PATH="$HOME/.openclaw/workspace/a-stock-strategy/a_share_historical.db"
+export OPENCLAW_SQLITE_DB_PATH="$HOME/a_share_daily_data/a_share_daily.db"
 bash /Users/apple/ai-trading-research/scripts/run_openclaw_daily.sh
 ```
+
+### Telegram（勿写进 cron 明文）
+
+`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID` 应放在本机 `~/.openclaw/secrets.env`（与 Gateway 一致），**不要**写进 `~/.openclaw/cron/jobs.json` 的 `payload.message`，以免备份或日志泄露。
+
+定时任务里可在执行脚本前加载密钥文件（仅引用路径，不含 token）：
+
+```bash
+set -a && [ -f "$HOME/.openclaw/secrets.env" ] && . "$HOME/.openclaw/secrets.env" && set +a
+```
+
+然后在同一 shell 中 `export OPENCLAW_SEND_TELEGRAM=1` 并调用 `scripts/run_openclaw_daily.sh`。`openclaw.json` 的 `env` 与 `secrets.providers.default.allowlist` 中可加入上述变量名，便于与 OpenClaw 密钥体系对齐。
+
+**若 token 曾出现在 cron 或会话日志中，建议在 BotFather 轮换 bot token。**
 
 可用变量：
 
@@ -123,3 +137,25 @@ cd /Users/apple/ai-trading-research && bash scripts/run_openclaw_daily.sh
 1. `16:10-16:30` 更新 SQLite 数据。
 2. `16:40` 执行本项目日任务。
 3. 后续 agent 或外部流程读取 `latest/manifest.json` 和 `latest/daily_report.md` 做复盘或通知。
+
+## A 股 / 美股日线下载：自动重试与失败告警
+
+本机 OpenClaw 里 **A 股 SQLite 每日更新**、**美股 quick 更新**、**美股全量 evening 下载** 三条 cron 已改为调用带 **指数退避重试** 的壳脚本（无需每天盯进度；偶发网络/接口抖动会自动多跑几轮）。
+
+| 脚本 | 作用 |
+|------|------|
+| `~/.openclaw/workspace/shell-lib/run_with_retry.sh` | 通用重试（日志在 `~/.openclaw/workspace/logs/data_retry/`） |
+| `~/.openclaw/workspace/a-stock-strategy/run_quick_update_resilient.sh` | 包装 `quick_update.py` |
+| `~/.openclaw/workspace/uscd/run_quick_update_us_resilient.sh` | 包装 `quick_update_us.py` |
+| `~/.openclaw/workspace/market_data_cache/run_daily_full_resilient.sh` | 包装 `daily_full_download.sh` |
+
+可调环境变量（在 LaunchAgent / shell 中设置均可）：
+
+- A 股：`A_SHARE_QUICK_RETRIES`（默认 5）、`A_SHARE_QUICK_FIRST_WAIT_SEC`（默认 120）
+- 美股 quick：`US_QUICK_RETRIES`、`US_QUICK_FIRST_WAIT_SEC`
+- 美股全量 evening：`US_FULL_RETRIES`、`US_FULL_FIRST_WAIT_SEC`
+- 全局：`RETRY_LOG_ROOT`、`RETRY_BACKOFF_CAP`（单次等待上限秒，默认 900）
+
+上述三条 cron 已开启 OpenClaw **`failureAlert`**：**连续失败 2 次**且距上次告警超过 **6 小时** 再提醒（具体投递渠道需在 OpenClaw 里配置好 `failure-alert-to` 等，否则仅网关内记录）。
+
+说明：**重试不能替代「数据源长期不可用」**；若多次仍失败，需看 `logs/data_retry/` 与原有 `*.log` 排查根因。

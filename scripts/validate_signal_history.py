@@ -68,6 +68,7 @@ def _summarize_groups(frame: pd.DataFrame, group_columns: list[str]) -> pd.DataF
 def main() -> None:
     parser = argparse.ArgumentParser(description="批量验证某个买点的历史样本")
     parser.add_argument("--signal", dest="signals", action="append", help="信号代码，例如 2b_structure，可重复传入")
+    parser.add_argument("--symbol", dest="symbols", action="append", help="股票代码，例如 600036，可重复传入")
     parser.add_argument("--max-symbols", type=int, default=10, help="最多扫描多少只股票，传 0 表示全量")
     parser.add_argument("--step", type=int, default=10, help="历史扫描步长")
     parser.add_argument("--limit-charts", type=int, default=8, help="最多导出多少张图")
@@ -96,11 +97,15 @@ def main() -> None:
     pretty_min_quality_score = float(config.get("scan", {}).get("pretty_min_quality_score", 60.0))
     pretty_hard_filter_score = float(config.get("scan", {}).get("pretty_hard_filter_score", 45.0))
     enabled_signals = list(args.signals or config["signals"]["enabled"])
-    spot = load_default_universe(
-        universe_config,
-        max_symbols=args.max_symbols,
-        ingest_config=ingest_config,
-    )
+    requested_symbols = [str(symbol).zfill(6) for symbol in (args.symbols or [])]
+    if requested_symbols:
+        spot = pd.DataFrame({"symbol": requested_symbols, "name": [""] * len(requested_symbols)})
+    else:
+        spot = load_default_universe(
+            universe_config,
+            max_symbols=args.max_symbols,
+            ingest_config=ingest_config,
+        )
 
     signal_key = "_".join(enabled_signals) if len(enabled_signals) <= 3 else "multi_signal"
     charts_dir = PROJECT_ROOT / "reports" / "validation" / signal_key
@@ -112,10 +117,12 @@ def main() -> None:
         symbol = str(row["symbol"])
         price_map[symbol] = fetch_a_share_history(symbol, ingest_config)
 
+    derived_breadth_by_date = _build_daily_breadth(price_map)
     if ingest_config.source == "sqlite":
-        breadth_by_date = load_sqlite_breadth_history(ingest_config)
+        breadth_by_date = derived_breadth_by_date
+        breadth_by_date.update(load_sqlite_breadth_history(ingest_config))
     else:
-        breadth_by_date = _build_daily_breadth(price_map)
+        breadth_by_date = derived_breadth_by_date
     index_histories = {
         name: fetch_index_history(code, market_filter)
         for name, code in market_filter.index_symbols.items()

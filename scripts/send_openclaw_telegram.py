@@ -95,7 +95,7 @@ def _escape_markdown(text: str) -> str:
 def _build_success_message(manifest: dict[str, object]) -> str:
     top_candidates = manifest.get("top_candidates", [])
     lines = [
-        "A股13买点日报",
+        "A股14买点日报",
         f"运行ID: {manifest.get('run_id', '')}",
         f"状态: {manifest.get('status', '')}",
         f"市场环境: {manifest.get('market_regime', '')}",
@@ -127,7 +127,7 @@ def _build_failure_message(run_dir: Path, error_message: str) -> str:
     escaped = _escape_markdown(error_message.strip() or "未知错误")
     return "\n".join(
         [
-            "*A股13买点日报失败*",
+            "*A股14买点日报失败*",
             f"目录: `{_escape_markdown(str(run_dir))}`",
             f"原因: `{escaped}`",
         ]

@@ -11,7 +11,7 @@ import pandas as pd
 @dataclass(slots=True)
 class DataIngestConfig:
     cache_dir: Path = Path("data/cache")
-    adjust: str = "qfq"
+    adjust: str = "hfq"
     start_date: str = "2018-01-01"
     end_date: str | None = None
     refresh: bool = False
@@ -40,6 +40,46 @@ def resolve_sqlite_db_path(config: DataIngestConfig) -> Path:
     if not db_path.exists():
         raise RuntimeError(f"SQLite 数据库不存在: {db_path}")
     return db_path
+
+
+def strip_exchange_prefix(symbol: str) -> str:
+    return str(symbol).split(".")[-1]
+
+
+def sqlite_symbol_variants(symbol: str) -> list[str]:
+    normalized = strip_exchange_prefix(symbol).zfill(6)
+    variants = [str(symbol), normalized]
+    if normalized.startswith(("600", "601", "603", "605", "688", "689", "900")):
+        variants.append(f"sh.{normalized}")
+    elif normalized.startswith(("000", "001", "002", "003", "300", "301", "200")):
+        variants.append(f"sz.{normalized}")
+    elif normalized.startswith(("430", "440", "830", "831", "832", "833", "834", "835", "836", "837", "838", "839", "870", "871", "872", "873", "874", "875", "876", "877", "878", "879")):
+        variants.append(f"bj.{normalized}")
+    return list(dict.fromkeys(str(item) for item in variants))
+
+
+def sqlite_table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
+    query = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1"
+    return conn.execute(query, [table_name]).fetchone() is not None
+
+
+def sqlite_table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    if not sqlite_table_exists(conn, table_name):
+        return set()
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {str(row[1]) for row in rows}
+
+
+def sqlite_price_table(conn: sqlite3.Connection) -> str:
+    if sqlite_table_exists(conn, "kline_data"):
+        return "kline_data"
+    if sqlite_table_exists(conn, "daily"):
+        return "daily"
+    raise RuntimeError("SQLite 数据库中既没有 kline_data，也没有 daily 表。")
+
+
+def sqlite_uses_legacy_schema(conn: sqlite3.Connection) -> bool:
+    return sqlite_price_table(conn) == "kline_data"
 
 
 def normalize_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
@@ -74,6 +114,8 @@ def normalize_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
     for column in numeric_columns:
         if column in normalized.columns:
             normalized[column] = pd.to_numeric(normalized[column], errors="coerce")
+    if "symbol" in normalized.columns:
+        normalized["symbol"] = normalized["symbol"].astype(str).map(strip_exchange_prefix)
     return normalized.sort_values("date").reset_index(drop=True)
 
 
@@ -102,26 +144,62 @@ def _fetch_akshare_history(symbol: str, config: DataIngestConfig) -> pd.DataFram
 
 def _fetch_sqlite_history(symbol: str, config: DataIngestConfig) -> pd.DataFrame:
     end_date = config.end_date or pd.Timestamp.today().strftime("%Y-%m-%d")
-    query = """
-        SELECT
-            code,
-            date,
-            open,
-            high,
-            low,
-            close,
-            volume,
-            amount,
-            pct_chg,
-            turnover
-        FROM kline_data
-        WHERE code = ?
-          AND date >= ?
-          AND date <= ?
-        ORDER BY date
-    """
     with closing(sqlite3.connect(resolve_sqlite_db_path(config))) as conn:
-        frame = pd.read_sql_query(query, conn, params=[symbol, config.start_date, end_date])
+        table_name = sqlite_price_table(conn)
+        if table_name == "kline_data":
+            query = """
+                SELECT
+                    code,
+                    date,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume,
+                    amount,
+                    pct_chg,
+                    turnover
+                FROM kline_data
+                WHERE code = ?
+                  AND date >= ?
+                  AND date <= ?
+                ORDER BY date
+            """
+            params = [strip_exchange_prefix(symbol), config.start_date, end_date]
+        else:
+            columns = sqlite_table_columns(conn, table_name)
+            use_adjusted = config.adjust == "hfq" and {
+                "open_adj",
+                "high_adj",
+                "low_adj",
+                "close_adj",
+            }.issubset(columns)
+            open_column = "COALESCE(open_adj, open)" if use_adjusted else "open"
+            high_column = "COALESCE(high_adj, high)" if use_adjusted else "high"
+            low_column = "COALESCE(low_adj, low)" if use_adjusted else "low"
+            close_column = "COALESCE(close_adj, close)" if use_adjusted else "close"
+            turnover_column = "turn" if "turn" in columns else "turnover"
+            placeholders = ",".join("?" for _ in sqlite_symbol_variants(symbol))
+            query = f"""
+                SELECT
+                    code,
+                    date,
+                    {open_column} AS open,
+                    {high_column} AS high,
+                    {low_column} AS low,
+                    {close_column} AS close,
+                    volume,
+                    amount,
+                    pct_chg,
+                    {turnover_column} AS turnover
+                FROM {table_name}
+                WHERE code IN ({placeholders})
+                  AND date >= ?
+                  AND date <= ?
+                ORDER BY date
+            """
+            params = [*sqlite_symbol_variants(symbol), config.start_date, end_date]
+        frame = pd.read_sql_query(query, conn, params=params)
     return normalize_ohlcv(frame)
 
 
@@ -160,13 +238,14 @@ def _fetch_history_with_sqlite_warmup(symbol: str, config: DataIngestConfig) -> 
 
 def load_sqlite_breadth_history(config: DataIngestConfig) -> dict[pd.Timestamp, pd.DataFrame]:
     end_date = config.end_date or pd.Timestamp.today().strftime("%Y-%m-%d")
-    query = """
-        SELECT date, pct_chg
-        FROM kline_data
-        WHERE date >= ?
-          AND date <= ?
-    """
     with closing(sqlite3.connect(resolve_sqlite_db_path(config))) as conn:
+        table_name = sqlite_price_table(conn)
+        query = f"""
+            SELECT date, pct_chg
+            FROM {table_name}
+            WHERE date >= ?
+              AND date <= ?
+        """
         frame = pd.read_sql_query(query, conn, params=[config.start_date, end_date])
     frame["date"] = pd.to_datetime(frame["date"])
     frame["pct_chg"] = pd.to_numeric(frame["pct_chg"], errors="coerce")

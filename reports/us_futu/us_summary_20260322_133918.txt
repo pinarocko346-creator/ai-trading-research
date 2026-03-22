@@ -1,0 +1,7 @@
+美股 MRMC + NX 自动筛选摘要
+生成时间: 2026-03-22T13:39:18
+市场环境: risk_off
+正向指数数量: 0
+候选清单:
+- AMD | sweet_spot_hourly | score=88.0 | tf=1h | note=突破蓝黄梯后回踩支撑，符合甜点结构
+- NET | blue_above_yellow_trend_daily | score=82.0 | tf=1d | note=蓝梯稳定在黄梯之上，价格维持在蓝梯上方

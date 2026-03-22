@@ -31,7 +31,7 @@ def build_price_features(frame: pd.DataFrame) -> pd.DataFrame:
     df = frame.sort_values("date").copy()
     df["date"] = pd.to_datetime(df["date"])
 
-    for window in (5, 10, 20, 40, 60):
+    for window in (5, 10, 20, 40, 50, 60):
         df[f"ma_{window}"] = df["close"].rolling(window).mean()
         df[f"rolling_high_{window}"] = df["high"].rolling(window).max()
         df[f"rolling_low_{window}"] = df["low"].rolling(window).min()
@@ -39,6 +39,7 @@ def build_price_features(frame: pd.DataFrame) -> pd.DataFrame:
     df["avg_volume_5"] = df["volume"].rolling(5).mean()
     df["avg_volume_10"] = df["volume"].rolling(10).mean()
     df["avg_volume_20"] = df["volume"].rolling(20).mean()
+    df["avg_volume_50"] = df["volume"].rolling(50).mean()
     df["volume_ratio"] = df["volume"] / df["avg_volume_20"].replace(0, np.nan)
     df["volume_dryup_ratio_5_20"] = df["avg_volume_5"] / df["avg_volume_20"].replace(0, np.nan)
     df["volume_dryup_ratio_10_20"] = df["avg_volume_10"] / df["avg_volume_20"].replace(0, np.nan)

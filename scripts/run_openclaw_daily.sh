@@ -25,7 +25,7 @@ if [ ! -x "$PYTHON_BIN" ]; then
 fi
 
 echo "==========================================" | tee -a "$LOG_FILE"
-echo "A股13买点 OpenClaw 日任务 - $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+echo "A股14买点 OpenClaw 日任务 - $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
 echo "PROJECT_DIR=$PROJECT_DIR" | tee -a "$LOG_FILE"
 echo "OUTPUT_ROOT=$OUTPUT_ROOT" | tee -a "$LOG_FILE"
 

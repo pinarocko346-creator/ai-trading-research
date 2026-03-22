@@ -1,0 +1,153 @@
+database:
+  sqlite_db_path: "~/us_stock_daily_data/us_stock_daily.db"
+  price_table: "daily"
+  index_table: "index_daily"
+  adjust_price: true
+
+universe:
+  min_price: 5.0
+  min_avg_volume_20: 2000000
+  min_avg_dollar_volume_20: 100000000
+  max_symbols: 0
+  exclude_symbol_patterns:
+    - "W$"
+    - "WS$"
+    - "WT$"
+    - "U$"
+    - "R$"
+    - "P$"
+
+market:
+  index_symbols:
+    - "^GSPC"
+    - "^IXIC"
+    - "^DJI"
+  min_positive_count: 2
+
+signal:
+  bottom_lookback_bars: 6
+  sell_lookback_bars: 3
+  breakout_lookback_bars: 5
+  retest_lookback_bars: 10
+  retest_tolerance_pct: 0.02
+  right_side_only: true
+  weekly_trend_required: false
+  monthly_filter_enabled: true
+  require_sector_resonance: false
+
+intraday:
+  enabled: false
+  source: "yfinance"
+  intraday_30m_period: "60d"
+  intraday_60m_period: "720d"
+  refresh_hours: 8
+  max_symbols: 150
+  min_30m_bars: 40
+  min_1h_bars: 80
+  min_2h_bars: 40
+  min_3h_bars: 30
+  min_4h_bars: 25
+
+macd:
+  fast_period: 12
+  slow_period: 26
+  signal_period: 9
+
+sectors:
+  min_resonance_members: 2
+  min_breakout_members: 1
+  baskets:
+    semis:
+      - "SOXX"
+      - "SMH"
+      - "NVDA"
+      - "AMD"
+      - "AVGO"
+      - "TSM"
+      - "MU"
+      - "ARM"
+      - "QCOM"
+      - "ASML"
+      - "AMAT"
+      - "KLAC"
+      - "LRCX"
+      - "MRVL"
+      - "MCHP"
+      - "ADI"
+      - "NXPI"
+      - "ON"
+      - "MPWR"
+      - "COHR"
+      - "LITE"
+      - "VRT"
+      - "SMCI"
+    mega_tech:
+      - "XLK"
+      - "AAPL"
+      - "MSFT"
+      - "GOOGL"
+      - "GOOG"
+      - "META"
+      - "AMZN"
+      - "NFLX"
+      - "ORCL"
+      - "CRM"
+      - "ADBE"
+      - "INTU"
+      - "PLTR"
+    cloud_security:
+      - "IGV"
+      - "HACK"
+      - "CRWD"
+      - "PANW"
+      - "ZS"
+      - "OKTA"
+      - "NET"
+      - "DDOG"
+      - "SNOW"
+      - "MDB"
+      - "ESTC"
+      - "HUBS"
+      - "SHOP"
+      - "DUOL"
+      - "APP"
+    crypto:
+      - "IBIT"
+      - "MSTR"
+      - "COIN"
+      - "MARA"
+      - "RIOT"
+      - "CLSK"
+      - "HOOD"
+      - "CIFR"
+      - "IREN"
+    ev_space:
+      - "TSLA"
+      - "RIVN"
+      - "LI"
+      - "XPEV"
+      - "NIO"
+      - "LCID"
+      - "RKLB"
+      - "ASTS"
+      - "IONQ"
+    financials:
+      - "XLF"
+      - "JPM"
+      - "GS"
+      - "MS"
+      - "BAC"
+      - "V"
+      - "MA"
+      - "PYPL"
+      - "HOOD"
+      - "SOFI"
+    healthcare:
+      - "XLV"
+      - "LLY"
+      - "UNH"
+      - "ABBV"
+      - "JNJ"
+      - "MRK"
+      - "ISRG"
+      - "TMO"

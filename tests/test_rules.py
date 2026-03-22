@@ -173,8 +173,13 @@ def _synthetic_jumping_creek_frame() -> pd.DataFrame:
         if index == last_index:
             open_price = 13.82
             high = 14.32
-            low = 13.78
+            low = 13.90
             volume = 4_800_000
+        elif index >= last_index - 4:
+            open_price = close * 0.996
+            high = min(max(close, open_price) * 1.008, 13.98)
+            low = max(min(close, open_price) * 0.992, 12.95)
+            volume = 1_650_000
         else:
             open_price = close * 0.996
             high = min(max(close, open_price) * 1.008, 13.98)
@@ -225,6 +230,58 @@ def _synthetic_pattern_breakout_frame() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _synthetic_support_flip_frame() -> pd.DataFrame:
+    closes = [7.9 + 0.022 * index for index in range(105)] + [
+        10.92, 10.98, 11.02, 11.0, 10.96, 11.01, 11.6, 11.42, 11.28, 11.22, 11.3, 11.74,
+    ]
+    rows = []
+    last_index = len(closes) - 1
+    breakout_index = len(closes) - 6
+    for index, close in enumerate(closes):
+        if index == breakout_index:
+            open_price = 11.08
+            high = 11.72
+            low = 11.02
+            volume = 4_600_000
+        elif index == last_index:
+            open_price = 11.34
+            high = 11.82
+            low = 11.30
+            volume = 3_000_000
+        elif breakout_index < index < last_index:
+            open_price = close * 0.998
+            high = close * 1.006
+            low = close * 0.992
+            volume = 1_850_000
+        else:
+            open_price = close * 0.996
+            high = close * 1.01
+            low = close * 0.99
+            volume = 2_200_000
+        rows.append(
+            {
+                "date": pd.Timestamp("2024-01-01") + pd.Timedelta(days=index),
+                "open": round(open_price, 2),
+                "high": round(high, 2),
+                "low": round(low, 2),
+                "close": round(close, 2),
+                "volume": volume,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _synthetic_support_flip_frame_failed_pullback() -> pd.DataFrame:
+    frame = _synthetic_support_flip_frame().copy()
+    pullback_indices = list(range(len(frame) - 5, len(frame) - 1))
+    frame.loc[pullback_indices, "close"] = [11.18, 11.02, 10.94, 11.08]
+    frame.loc[pullback_indices, "open"] = [11.26, 11.12, 11.02, 11.0]
+    frame.loc[pullback_indices, "high"] = [11.30, 11.18, 11.08, 11.12]
+    frame.loc[pullback_indices, "low"] = [11.08, 10.88, 10.82, 10.98]
+    frame.loc[pullback_indices, "volume"] = [3_000_000, 3_200_000, 3_250_000, 3_100_000]
+    return frame
+
+
 def _synthetic_false_break_frame_shallow_break() -> pd.DataFrame:
     frame = _synthetic_false_break_frame().copy()
     frame.loc[len(frame) - 3, "low"] = 8.21
@@ -239,6 +296,16 @@ def _synthetic_breakout_frame_loose_setup() -> pd.DataFrame:
     return frame
 
 
+def _synthetic_breakout_frame_failed_hold() -> pd.DataFrame:
+    frame = _synthetic_breakout_frame().copy()
+    last_index = len(frame) - 1
+    frame.loc[last_index, "low"] = round(frame.loc[last_index, "breakout_level_20"] * 0.995, 2) if "breakout_level_20" in frame.columns else 13.2
+    frame.loc[last_index, "close"] = 14.28
+    frame.loc[last_index, "high"] = 14.52
+    frame.loc[last_index, "open"] = 13.86
+    return frame
+
+
 def _synthetic_jumping_creek_frame_weak_break() -> pd.DataFrame:
     frame = _synthetic_jumping_creek_frame().copy()
     last_index = len(frame) - 1
@@ -246,6 +313,17 @@ def _synthetic_jumping_creek_frame_weak_break() -> pd.DataFrame:
     frame.loc[last_index, "high"] = 14.6
     frame.loc[last_index, "low"] = 13.72
     frame.loc[last_index, "open"] = 13.88
+    return frame
+
+
+def _synthetic_jumping_creek_frame_failed_hold() -> pd.DataFrame:
+    frame = _synthetic_jumping_creek_frame().copy()
+    last_index = len(frame) - 1
+    frame.loc[last_index, "open"] = 13.84
+    frame.loc[last_index, "high"] = 14.38
+    frame.loc[last_index, "low"] = 13.45
+    frame.loc[last_index, "close"] = 14.26
+    frame.loc[last_index, "volume"] = 5_100_000
     return frame
 
 
@@ -294,6 +372,121 @@ def _synthetic_cup_with_handle_frame_deep_handle() -> pd.DataFrame:
     frame.loc[handle_indices, "high"] = [10.3, 10.08, 9.95, 10.0, 10.02]
     frame.loc[handle_indices, "low"] = [10.05, 9.82, 9.68, 9.8, 9.9]
     frame.loc[handle_indices, "volume"] = [2_800_000, 2_900_000, 3_000_000, 2_850_000, 2_900_000]
+    return frame
+
+
+def _synthetic_cup_with_short_handle_frame() -> pd.DataFrame:
+    frame = _synthetic_cup_with_handle_frame().copy()
+    short_handle_indices = list(range(len(frame) - 5, len(frame)))
+    frame.loc[short_handle_indices[:-1], "close"] = [10.48, 10.52, 10.58, 10.46]
+    frame.loc[short_handle_indices[:-1], "open"] = [10.44, 10.48, 10.54, 10.50]
+    frame.loc[short_handle_indices[:-1], "high"] = [10.54, 10.58, 10.64, 10.52]
+    frame.loc[short_handle_indices[:-1], "low"] = [10.40, 10.46, 10.50, 10.38]
+    frame.loc[short_handle_indices[:-1], "volume"] = [2_100_000, 2_050_000, 2_000_000, 1_550_000]
+    frame.loc[short_handle_indices[-1], "open"] = 10.55
+    frame.loc[short_handle_indices[-1], "high"] = 11.08
+    frame.loc[short_handle_indices[-1], "low"] = 10.52
+    frame.loc[short_handle_indices[-1], "close"] = 11.0
+    frame.loc[short_handle_indices[-1], "volume"] = 5_400_000
+    return frame
+
+
+def _synthetic_cup_with_watch_frame() -> pd.DataFrame:
+    frame = _synthetic_cup_with_short_handle_frame().copy().iloc[:-1].reset_index(drop=True)
+    last_index = len(frame) - 1
+    frame.loc[last_index, "open"] = 10.56
+    frame.loc[last_index, "high"] = 10.74
+    frame.loc[last_index, "low"] = 10.50
+    frame.loc[last_index, "close"] = 10.70
+    frame.loc[last_index, "volume"] = 3_200_000
+    return frame
+
+
+def _synthetic_cup_with_watch_frame_unround() -> pd.DataFrame:
+    frame = _synthetic_cup_with_watch_frame().copy()
+    pattern_indices = list(range(len(frame) - 32, len(frame)))
+    closes = [
+        10.55, 10.42, 10.28, 10.15, 10.02, 9.9, 9.82, 9.76,
+        9.7, 9.66, 9.62, 9.58, 9.54, 9.56, 9.6, 9.64,
+        9.68, 9.6, 9.52, 9.34, 9.18, 9.05, 9.12, 9.2,
+        9.35, 9.52, 9.7, 9.88, 10.05, 10.22, 10.42, 10.7,
+    ]
+    for offset, index in enumerate(pattern_indices):
+        close = closes[offset]
+        if offset == len(pattern_indices) - 1:
+            frame.loc[index, "open"] = 10.56
+            frame.loc[index, "high"] = 10.74
+            frame.loc[index, "low"] = 10.50
+            frame.loc[index, "close"] = close
+            frame.loc[index, "volume"] = 3_200_000
+            continue
+        frame.loc[index, "open"] = round(close * 0.998, 2)
+        frame.loc[index, "high"] = round(close * 1.008, 2)
+        frame.loc[index, "low"] = round(close * 0.992, 2)
+        frame.loc[index, "close"] = close
+        frame.loc[index, "volume"] = 1_900_000
+    return frame
+
+
+def _synthetic_cup_with_handle_strict_frame() -> pd.DataFrame:
+    pretrend = (
+        [4.2 + 0.015 * index for index in range(60)]
+        + [5.1 + 0.026 * index for index in range(70)]
+        + [6.92 + 0.035 * index for index in range(60)]
+    )
+    closes = pretrend + [
+        8.95, 8.9, 8.8, 8.7, 8.55, 8.4, 8.25, 8.12,
+        8.0, 7.9, 7.82, 7.76, 7.72, 7.68, 7.66, 7.65,
+        7.66, 7.69, 7.73, 7.79, 7.87, 7.96, 8.08, 8.2,
+        8.32, 8.44, 8.56, 8.66, 8.74, 8.82, 8.88, 8.92,
+        8.82, 8.74, 8.78, 8.8, 8.83, 9.25,
+    ]
+    rows = []
+    last_index = len(closes) - 1
+    handle_start = last_index - 5
+    for index, close in enumerate(closes):
+        if index == last_index:
+            open_price = 8.9
+            high = 9.32
+            low = 8.88
+            volume = 5_500_000
+        elif index >= handle_start:
+            open_price = close * 0.998
+            high = close * 1.006
+            low = close * 0.992
+            volume = 1_550_000
+        else:
+            open_price = close * 0.996
+            high = close * 1.01
+            low = close * 0.99
+            volume = 2_450_000
+        rows.append(
+            {
+                "date": pd.Timestamp("2024-01-01") + pd.Timedelta(days=index),
+                "open": round(open_price, 2),
+                "high": round(high, 2),
+                "low": round(low, 2),
+                "close": round(close, 2),
+                "volume": volume,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _synthetic_cup_with_handle_leader_frame() -> pd.DataFrame:
+    frame = _synthetic_cup_with_handle_strict_frame().copy()
+    handle_indices = list(range(len(frame) - 6, len(frame) - 1))
+    frame.loc[handle_indices, "close"] = [8.72, 8.60, 8.52, 8.58, 8.66]
+    frame.loc[handle_indices, "open"] = [8.78, 8.66, 8.58, 8.54, 8.62]
+    frame.loc[handle_indices, "high"] = [8.80, 8.68, 8.60, 8.62, 8.72]
+    frame.loc[handle_indices, "low"] = [8.66, 8.54, 8.46, 8.52, 8.60]
+    frame.loc[handle_indices, "volume"] = [1_520_000, 1_480_000, 1_420_000, 1_430_000, 1_470_000]
+    frame.loc[:, "market_cap"] = 35_000_000_000.0
+    frame.loc[len(frame) - 1, "open"] = 8.82
+    frame.loc[len(frame) - 1, "high"] = 9.56
+    frame.loc[len(frame) - 1, "low"] = 8.76
+    frame.loc[len(frame) - 1, "close"] = 9.50
+    frame.loc[len(frame) - 1, "volume"] = 5_800_000
     return frame
 
 
@@ -392,6 +585,17 @@ class RuleTests(unittest.TestCase):
         )
         self.assertFalse(signals)
 
+    def test_jumping_creek_rejects_breakout_that_fails_to_hold_resistance(self) -> None:
+        frame = _synthetic_jumping_creek_frame_failed_hold()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["jumping_creek"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
     def test_detects_cup_with_handle_on_classic_breakout(self) -> None:
         frame = _synthetic_cup_with_handle_frame()
         signals = scan_signals(
@@ -415,8 +619,101 @@ class RuleTests(unittest.TestCase):
         )
         self.assertFalse(signals)
 
+    def test_detects_cup_with_short_handle_on_strong_breakout(self) -> None:
+        frame = _synthetic_cup_with_short_handle_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "cup_with_handle")
+
+    def test_detects_strict_cup_with_handle_on_valid_breakout(self) -> None:
+        frame = _synthetic_cup_with_handle_strict_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_strict"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "cup_with_handle_strict")
+
+    def test_strict_cup_with_handle_rejects_short_cup(self) -> None:
+        frame = _synthetic_cup_with_handle_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_strict"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_detects_leader_cup_with_handle_on_valid_breakout(self) -> None:
+        frame = _synthetic_cup_with_handle_leader_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_leader"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "cup_with_handle_leader")
+
+    def test_leader_cup_with_handle_requires_5_to_10_pct_handle(self) -> None:
+        frame = _synthetic_cup_with_handle_strict_frame().copy()
+        frame.loc[:, "market_cap"] = 35_000_000_000.0
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_leader"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_detects_cup_with_handle_watch_before_breakout(self) -> None:
+        frame = _synthetic_cup_with_watch_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_watch"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "cup_with_handle_watch")
+
+    def test_cup_with_handle_watch_rejects_unround_bottom(self) -> None:
+        frame = _synthetic_cup_with_watch_frame_unround()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["cup_with_handle_watch"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
     def test_double_breakout_requires_tight_pre_breakout_setup(self) -> None:
         frame = build_price_features(_synthetic_breakout_frame_loose_setup())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["double_breakout"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_double_breakout_rejects_breakout_that_fails_to_hold_level(self) -> None:
+        frame = _synthetic_breakout_frame_failed_hold()
         signals = scan_signals(
             frame,
             symbol="000001",
@@ -437,6 +734,29 @@ class RuleTests(unittest.TestCase):
         )
         self.assertTrue(signals)
         self.assertEqual(signals[0].signal_type, "pattern_breakout")
+
+    def test_detects_support_resistance_flip_after_shallow_pullback(self) -> None:
+        frame = _synthetic_support_flip_frame()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["support_resistance_flip"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertTrue(signals)
+        self.assertEqual(signals[0].signal_type, "support_resistance_flip")
+
+    def test_support_resistance_flip_rejects_heavy_pullback(self) -> None:
+        frame = _synthetic_support_flip_frame_failed_pullback()
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["support_resistance_flip"],
+            thresholds=RuleThresholds(),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
 
 
 if __name__ == "__main__":

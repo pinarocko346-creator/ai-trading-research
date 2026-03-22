@@ -41,7 +41,7 @@ def _match_signal(history, symbol: str, signal_type: str, signal_date: str, thre
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="生成A股13买点日报")
+    parser = argparse.ArgumentParser(description="生成A股14买点日报")
     parser.add_argument("--max-symbols", type=int, default=100, help="扫描股票池数量，传 0 表示全量")
     parser.add_argument("--top", type=int, default=20, help="日报保留候选数量")
     args = parser.parse_args()

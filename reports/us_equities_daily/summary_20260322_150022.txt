@@ -1,0 +1,29 @@
+美股日线量化筛选摘要
+生成时间: 2026-03-22T15:00:22
+市场环境: risk_off
+正向指数数量: 0
+股票池数量: 587
+有效扫描数量: 572
+多周期扫描数量: 0
+4321 候选数量: 0
+候选清单:
+- AMAT | weekly_trend_resonance | score=97.0 | tf=1w | sector=semis
+- LITE | weekly_trend_resonance | score=97.0 | tf=1w | sector=semis
+- LRCX | weekly_trend_resonance | score=97.0 | tf=1w | sector=semis
+- MRVL | weekly_trend_resonance | score=97.0 | tf=1w | sector=semis
+- VRT | weekly_trend_resonance | score=97.0 | tf=1w | sector=semis
+- AMAT | blue_above_yellow_trend_daily | score=96.0 | tf=1d | sector=semis
+- LITE | blue_above_yellow_trend_daily | score=96.0 | tf=1d | sector=semis
+- LRCX | blue_above_yellow_trend_daily | score=96.0 | tf=1d | sector=semis
+- MRVL | blue_above_yellow_trend_daily | score=96.0 | tf=1d | sector=semis
+- VRT | blue_above_yellow_trend_daily | score=96.0 | tf=1d | sector=semis
+- ARM | daily_sweet_spot | score=96.0 | tf=1d | sector=semis
+- NET | blue_above_yellow_trend_daily | score=91.33 | tf=1d | sector=cloud_security
+- NET | weekly_trend_resonance | score=91.28 | tf=1w | sector=cloud_security
+- NBIS | daily_sweet_spot | score=89.0 | tf=1d | sector=
+- NVT | daily_sweet_spot | score=89.0 | tf=1d | sector=
+- SEI | daily_sweet_spot | score=89.0 | tf=1d | sector=
+- TSEM | daily_sweet_spot | score=89.0 | tf=1d | sector=
+- ACLX | blue_above_yellow_trend_daily | score=88.0 | tf=1d | sector=
+- AXTI | blue_above_yellow_trend_daily | score=88.0 | tf=1d | sector=
+- CF | blue_above_yellow_trend_daily | score=88.0 | tf=1d | sector=

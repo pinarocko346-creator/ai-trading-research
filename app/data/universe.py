@@ -6,7 +6,14 @@ import sqlite3
 
 import pandas as pd
 
-from app.data.ingest import DataIngestConfig, resolve_sqlite_db_path
+from app.data.ingest import (
+    DataIngestConfig,
+    resolve_sqlite_db_path,
+    sqlite_price_table,
+    sqlite_table_columns,
+    sqlite_uses_legacy_schema,
+    strip_exchange_prefix,
+)
 
 
 @dataclass(slots=True)
@@ -27,39 +34,58 @@ def _import_akshare():
 
 
 def _load_sqlite_spot(config: DataIngestConfig) -> pd.DataFrame:
-    trade_dates_query = """
-        SELECT date
-        FROM (
-            SELECT DISTINCT date
-            FROM kline_data
-            ORDER BY date DESC
-            LIMIT 20
-        )
-        ORDER BY date
-    """
     db_path = resolve_sqlite_db_path(config)
     with closing(sqlite3.connect(db_path)) as conn:
+        table_name = sqlite_price_table(conn)
+        trade_dates_query = f"""
+            SELECT date
+            FROM (
+                SELECT DISTINCT date
+                FROM {table_name}
+                ORDER BY date DESC
+                LIMIT 20
+            )
+            ORDER BY date
+        """
         trade_dates = pd.read_sql_query(trade_dates_query, conn)["date"].astype(str).tolist()
         if not trade_dates:
             return pd.DataFrame(columns=["symbol", "name", "close", "volume", "avg_volume_20", "turnover_rate", "pct_chg"])
         placeholders = ",".join("?" for _ in trade_dates)
-        spot_query = f"""
-            SELECT
-                k.code AS symbol,
-                COALESCE(s.name, k.code) AS name,
-                k.date,
-                k.close,
-                k.volume,
-                k.turnover AS turnover_rate,
-                k.pct_chg
-            FROM kline_data k
-            LEFT JOIN stock_list s
-              ON s.code = k.code
-            WHERE k.date IN ({placeholders})
-        """
+        if sqlite_uses_legacy_schema(conn):
+            spot_query = f"""
+                SELECT
+                    k.code AS symbol,
+                    COALESCE(s.name, k.code) AS name,
+                    k.date,
+                    k.close,
+                    k.volume,
+                    k.turnover AS turnover_rate,
+                    k.pct_chg
+                FROM kline_data k
+                LEFT JOIN stock_list s
+                  ON s.code = k.code
+                WHERE k.date IN ({placeholders})
+            """
+        else:
+            columns = sqlite_table_columns(conn, table_name)
+            close_column = "COALESCE(k.close_adj, k.close)" if config.adjust == "hfq" and "close_adj" in columns else "k.close"
+            turnover_column = "turn" if "turn" in columns else "turnover"
+            spot_query = f"""
+                SELECT
+                    k.code AS symbol,
+                    k.code AS name,
+                    k.date,
+                    {close_column} AS close,
+                    k.volume,
+                    k.{turnover_column} AS turnover_rate,
+                    k.pct_chg
+                FROM {table_name} k
+                WHERE k.date IN ({placeholders})
+            """
         frame = pd.read_sql_query(spot_query, conn, params=trade_dates)
 
     frame["date"] = pd.to_datetime(frame["date"])
+    frame["symbol"] = frame["symbol"].astype(str).map(strip_exchange_prefix)
     for column in ("close", "volume", "turnover_rate", "pct_chg"):
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
     frame = frame.sort_values(["symbol", "date"]).reset_index(drop=True)
@@ -120,6 +146,8 @@ def load_a_share_spot(ingest_config: DataIngestConfig | None = None) -> pd.DataF
         "成交量": "volume",
         "换手率": "turnover_rate",
         "涨跌幅": "pct_chg",
+        "总市值": "market_cap",
+        "流通市值": "float_market_cap",
     }
     normalized = spot.rename(columns=column_map).copy()
     return normalized

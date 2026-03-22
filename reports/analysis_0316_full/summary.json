@@ -1,0 +1,10 @@
+{
+  "trade_date": "2026-03-16",
+  "universe_size": 2646,
+  "signal_count": 75,
+  "symbol_count": 61,
+  "filter_ok_count": 47,
+  "pretty_ok_count": 60,
+  "candidate_count": 22,
+  "market_regime": "neutral"
+}
