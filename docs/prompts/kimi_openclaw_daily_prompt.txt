@@ -58,5 +58,6 @@
 - 必须优先依据 `latest/today_expectancy.csv` 和 `latest/daily_value_report.md`
 - 不要只根据 `latest/daily_report.md` 下结论
 - 如果 `latest/manifest.json` 里显示 `sqlite_is_stale=true`，要明确提示结果可靠性下降
+- 如果只是周末或节假日导致 `sqlite_staleness_days` 增加，但 `sqlite_is_stale=false`，应视为正常，不得直接判定数据无效或过期
 - 如果样本数过少，要明确提示“统计可信度不足”
 - 用中文，简洁，直接
