@@ -71,6 +71,30 @@ set -a && [ -f "$HOME/.openclaw/secrets.env" ] && . "$HOME/.openclaw/secrets.env
 - `OPENCLAW_LOG_FILE`
 - `PYTHON_BIN`
 
+## Kimi 提示模板
+
+建议把 `Kimi 2.5` 的固定提示模板放在：
+
+- `docs/prompts/kimi_openclaw_daily_prompt.txt`
+
+这个文件只是模板本体，`Kimi` 不会自动发现它。要在 `OpenClaw` 的任务提示里明确写入口提示，让模型先读取它。
+
+推荐入口提示文本：
+
+```text
+请先读取 /Users/apple/ai-trading-research/docs/prompts/kimi_openclaw_daily_prompt.txt，
+并严格按其中要求分析 latest/ 下的输出文件。
+如果该模板文件不存在或无法读取，请明确说明后再继续。
+```
+
+如果 `OpenClaw` 的工作目录已经是仓库根目录，也可以用相对路径版本：
+
+```text
+请先读取 docs/prompts/kimi_openclaw_daily_prompt.txt，
+并严格按其中要求分析 latest/ 下的输出文件。
+如果该模板文件不存在或无法读取，请明确说明后再继续。
+```
+
 ## 输出结构
 
 每次运行会生成一个独立目录，例如：
