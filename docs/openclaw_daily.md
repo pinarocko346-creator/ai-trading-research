@@ -8,7 +8,7 @@
 
 1. 先完成 A 股 SQLite 日线库更新。
 2. 再执行本项目的每日扫描任务。
-3. 读取 `latest/manifest.json`、`latest/daily_candidates.csv` 和 `latest/daily_report.md`。
+3. 读取 `latest/manifest.json`、`latest/daily_candidates.csv`、`latest/daily_report.md` 和 `latest/daily_value_report.md`。
 
 如果 SQLite 数据还没更新，脚本仍会执行，但会在 `manifest.json` 里标记 `sqlite_is_stale=true`。
 
@@ -82,6 +82,10 @@ results/13points/
     daily_candidates.csv
     daily_report.md
     daily_signals.json
+    daily_signal_snapshot.csv
+    today_expectancy.csv
+    strategy_value_scoreboard.csv
+    daily_value_report.md
     full_scan.csv
     manifest.json
     summary.txt
@@ -90,9 +94,17 @@ results/13points/
     daily_candidates.csv
     daily_report.md
     daily_signals.json
+    daily_signal_snapshot.csv
+    today_expectancy.csv
+    strategy_value_scoreboard.csv
+    daily_value_report.md
     full_scan.csv
     manifest.json
     summary.txt
+  history/
+    signal_snapshot_history.csv
+    signal_forward_returns.csv
+    strategy_value_scoreboard.csv
   cron.log
 ```
 
@@ -101,9 +113,15 @@ results/13points/
 - `full_scan.csv`：全量扫描结果，适合二次筛选
 - `daily_candidates.csv`：最终候选清单
 - `daily_report.md`：人读日报
+- `daily_signal_snapshot.csv`：当天全量有效信号快照，按 `watch/candidate/executable` 分层
+- `today_expectancy.csv`：当天信号对应的历史期望收益参考
+- `strategy_value_scoreboard.csv`：最近 `20/60/120` 个交易日分策略统计
+- `daily_value_report.md`：更适合给 `OpenClaw/Kimi` 读取的价值验证摘要
 - `daily_signals.json`：机器可读信号详情
 - `manifest.json`：本次运行的摘要、状态和输出路径
 - `summary.txt`：短摘要，适合消息通知或日志查看
+- `history/signal_snapshot_history.csv`：累计信号事件历史
+- `history/signal_forward_returns.csv`：累计信号事件的前瞻收益回填
 
 ## manifest 字段
 
@@ -116,6 +134,9 @@ results/13points/
 - `scan_result_count`
 - `report_signal_count`
 - `filter_ok_count`
+- `value_signal_count`
+- `value_history_count`
+- `value_executable_signal_count`
 - `market_regime`
 - `sqlite_latest_trade_date`
 - `sqlite_staleness_days`

@@ -196,6 +196,13 @@ thresholds:
   false_break_min_breakdown_close_in_range: 0.35
   false_break_reclaim_min_rebound_from_low_pct: 0.01
   false_break_reclaim_min_close_above_support_pct: 0.003
+  false_break_reclaim_min_close_in_range: 0.6
+  false_break_reclaim_min_close_above_break_open_pct: 0.0
+  false_break_confirmation_bars: 2
+  false_break_confirm_close_vs_ma10_min_ratio: 0.995
+  false_break_confirm_close_vs_ma20_min_ratio: 0.995
+  false_break_confirm_ma20_min_slope_ratio: 0.998
+  false_break_post_reclaim_low_tolerance_pct: 0.002
   right_shoulder_similarity_pct: 0.08
   right_shoulder_bounce_pct: 0.015
   right_shoulder_signal_bars_from_low: 5

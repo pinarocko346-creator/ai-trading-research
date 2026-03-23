@@ -19,6 +19,7 @@ from app.data.sector_context import SectorFilterConfig
 from app.data.universe import UniverseConfig
 from app.report.charting import plot_signal_context
 from app.report.csv_localizer import write_localized_csv
+from app.report.daily_value_tracker import build_value_report, build_value_tracker_artifacts
 from app.report.report_builder import build_daily_report, dump_signals_json, save_report
 from app.strategy.rules import RuleThresholds, scan_signals
 from app.strategy.scanner import ScanConfig, load_default_universe, scan_market, select_diverse_candidates
@@ -110,6 +111,12 @@ def _build_summary(top_rows: pd.DataFrame, manifest: dict[str, object]) -> str:
         lines.append(f"数据状态: 警告，距今 {manifest['sqlite_staleness_days']} 天")
     else:
         lines.append("数据状态: 正常")
+    if manifest.get("value_signal_count") is not None:
+        lines.append(f"价值快照数: {manifest['value_signal_count']}")
+    if manifest.get("value_history_count") is not None:
+        lines.append(f"累计信号事件数: {manifest['value_history_count']}")
+    if manifest.get("value_executable_signal_count") is not None:
+        lines.append(f"可执行层信号数: {manifest['value_executable_signal_count']}")
     if top_rows.empty:
         lines.append("今日候选: 无")
         return "\n".join(lines) + "\n"
@@ -190,6 +197,10 @@ def main() -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     chart_dir.mkdir(parents=True, exist_ok=True)
 
+    sqlite_status = _build_sqlite_status(ingest_config, max_staleness_days=args.max_staleness_days)
+    latest_trade_date = str(sqlite_status.get("latest_trade_date") or pd.Timestamp.today().date().isoformat())
+    generated_at = datetime.now().isoformat(timespec="seconds")
+
     universe = load_default_universe(
         universe_config,
         max_symbols=args.max_symbols,
@@ -214,6 +225,18 @@ def main() -> None:
         scan_results,
         top_n=args.top,
         per_signal_limit=scan_config.per_signal_limit,
+    )
+
+    value_history_dir = output_root / "history"
+    value_artifacts = build_value_tracker_artifacts(
+        scan_results,
+        top_rows,
+        run_id=run_id,
+        generated_at=generated_at,
+        universe_scope=args.universe_scope,
+        latest_trade_date=latest_trade_date,
+        ingest_config=ingest_config,
+        history_dir=value_history_dir,
     )
 
     price_map: dict[str, pd.DataFrame] = {}
@@ -282,6 +305,10 @@ def main() -> None:
     candidates_path = run_dir / "daily_candidates.csv"
     signals_path = run_dir / "daily_signals.json"
     report_path = run_dir / "daily_report.md"
+    snapshot_today_path = run_dir / "daily_signal_snapshot.csv"
+    expectancy_path = run_dir / "today_expectancy.csv"
+    value_scoreboard_path = run_dir / "strategy_value_scoreboard.csv"
+    value_report_path = run_dir / "daily_value_report.md"
     summary_path = run_dir / "summary.txt"
     manifest_path = run_dir / "manifest.json"
 
@@ -289,8 +316,18 @@ def main() -> None:
     write_localized_csv(top_rows, str(candidates_path))
     dump_signals_json(signals, signals_path)
     save_report(report_text, report_path)
+    value_artifacts.snapshot_today.to_csv(snapshot_today_path, index=False)
+    value_artifacts.today_expectancy.to_csv(expectancy_path, index=False)
+    value_artifacts.scoreboard.to_csv(value_scoreboard_path, index=False)
+    save_report(
+        build_value_report(
+            value_artifacts.today_expectancy,
+            value_artifacts.scoreboard,
+            latest_trade_date=latest_trade_date,
+        ),
+        value_report_path,
+    )
 
-    sqlite_status = _build_sqlite_status(ingest_config, max_staleness_days=args.max_staleness_days)
     top_candidates = []
     for _, row in top_rows.head(10).iterrows():
         top_candidates.append(
@@ -306,7 +343,7 @@ def main() -> None:
         )
     manifest = {
         "run_id": run_id,
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": generated_at,
         "config_path": str(config_path),
         "project_root": str(PROJECT_ROOT),
         "universe_scope": args.universe_scope,
@@ -323,6 +360,17 @@ def main() -> None:
         "sqlite_symbol_count": sqlite_status["symbol_count"],
         "sqlite_staleness_days": sqlite_status["staleness_days"],
         "sqlite_is_stale": sqlite_status["is_stale"],
+        "value_signal_count": int(len(value_artifacts.snapshot_today)),
+        "value_history_count": int(len(value_artifacts.snapshot_history)),
+        "value_executable_signal_count": int((value_artifacts.snapshot_today["layer"] == "executable").sum())
+        if not value_artifacts.snapshot_today.empty
+        else 0,
+        "value_candidate_signal_count": int((value_artifacts.snapshot_today["layer"] == "candidate").sum())
+        if not value_artifacts.snapshot_today.empty
+        else 0,
+        "value_watch_signal_count": int((value_artifacts.snapshot_today["layer"] == "watch").sum())
+        if not value_artifacts.snapshot_today.empty
+        else 0,
         "status": "warning" if sqlite_status["is_stale"] else "ok",
         "top_candidates": top_candidates,
         "outputs": {
@@ -331,6 +379,11 @@ def main() -> None:
             "daily_candidates_csv": str(candidates_path),
             "daily_signals_json": str(signals_path),
             "daily_report_md": str(report_path),
+            "daily_signal_snapshot_csv": str(snapshot_today_path),
+            "today_expectancy_csv": str(expectancy_path),
+            "strategy_value_scoreboard_csv": str(value_scoreboard_path),
+            "daily_value_report_md": str(value_report_path),
+            "value_history_dir": str(value_history_dir),
             "summary_txt": str(summary_path),
             "charts_dir": str(chart_dir),
         },

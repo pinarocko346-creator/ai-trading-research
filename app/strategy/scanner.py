@@ -313,6 +313,49 @@ def score_signal_quality(signal) -> float:
                 score += 4.0
             elif break_pct < 0.005:
                 score -= 4.0
+        if signal.signal_type == "false_breakdown":
+            breakdown_close_in_range = _numeric_factor(signal, "breakdown_close_in_range")
+            if breakdown_close_in_range is not None:
+                if breakdown_close_in_range <= 0.2:
+                    score += 2.0
+                elif breakdown_close_in_range > 0.5:
+                    score -= 3.0
+            rebound_from_low_pct = _numeric_factor(signal, "rebound_from_low_pct")
+            if rebound_from_low_pct is not None:
+                if rebound_from_low_pct >= 0.03:
+                    score += 2.0
+                elif rebound_from_low_pct < 0.012:
+                    score -= 2.0
+            close_in_range = _numeric_factor(signal, "close_in_range")
+            if close_in_range is not None:
+                if close_in_range >= 0.75:
+                    score += 2.0
+                elif close_in_range < 0.6:
+                    score -= 2.0
+            confirm_close_vs_ma10 = _numeric_factor(signal, "confirm_close_vs_ma10")
+            if confirm_close_vs_ma10 is not None:
+                if confirm_close_vs_ma10 >= 1.01:
+                    score += 2.0
+                elif confirm_close_vs_ma10 < 0.995:
+                    score -= 3.0
+            confirm_close_vs_ma20 = _numeric_factor(signal, "confirm_close_vs_ma20")
+            if confirm_close_vs_ma20 is not None:
+                if confirm_close_vs_ma20 >= 1.0:
+                    score += 2.0
+                elif confirm_close_vs_ma20 < 0.995:
+                    score -= 2.0
+            if signal.factors.get("reclaim_above_break_open") is True:
+                score += 2.0
+            elif signal.factors.get("reclaim_above_break_open") is False:
+                score -= 3.0
+            if signal.factors.get("no_new_low_after_reclaim") is True:
+                score += 2.0
+            elif signal.factors.get("no_new_low_after_reclaim") is False:
+                score -= 4.0
+            if signal.factors.get("ma20_flat_enough") is True:
+                score += 1.0
+            elif signal.factors.get("ma20_flat_enough") is False:
+                score -= 3.0
     elif signal.signal_type == "first_rebound_after_crash":
         crash_drop_pct = _numeric_factor(signal, "crash_drop_pct")
         if crash_drop_pct is not None:

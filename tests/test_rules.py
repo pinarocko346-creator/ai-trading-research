@@ -323,6 +323,19 @@ def _synthetic_false_break_frame_weak_reclaim() -> pd.DataFrame:
     return frame
 
 
+def _synthetic_false_break_frame_below_break_open_reclaim() -> pd.DataFrame:
+    frame = _synthetic_false_break_frame().copy()
+    frame.loc[len(frame) - 2, ["open", "high", "low", "close", "volume"]] = [8.20, 8.29, 8.12, 8.26, 3_500_000]
+    frame.loc[len(frame) - 1, ["open", "high", "low", "close", "volume"]] = [8.24, 8.30, 8.18, 8.27, 3_200_000]
+    return frame
+
+
+def _synthetic_false_break_frame_reclaim_fails_confirmation() -> pd.DataFrame:
+    frame = _synthetic_false_break_frame().copy()
+    frame.loc[len(frame) - 1, ["open", "high", "low", "close", "volume"]] = [8.30, 8.34, 8.14, 8.22, 2_400_000]
+    return frame
+
+
 def _synthetic_breakout_frame_loose_setup() -> pd.DataFrame:
     frame = _synthetic_breakout_frame().copy()
     frame.loc[len(frame) - 2, "high"] = round(frame.loc[len(frame) - 2, "high"] * 1.08, 2)
@@ -574,6 +587,28 @@ class RuleTests(unittest.TestCase):
 
     def test_false_breakdown_rejects_weak_reclaim_without_fast_snapback(self) -> None:
         frame = build_price_features(_synthetic_false_break_frame_weak_reclaim())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["false_breakdown"],
+            thresholds=RuleThresholds(swing_lookback=20),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_false_breakdown_requires_reclaim_to_retake_break_open(self) -> None:
+        frame = build_price_features(_synthetic_false_break_frame_below_break_open_reclaim())
+        signals = scan_signals(
+            frame,
+            symbol="000001",
+            enabled_signals=["false_breakdown"],
+            thresholds=RuleThresholds(swing_lookback=20),
+            include_invalid=False,
+        )
+        self.assertFalse(signals)
+
+    def test_false_breakdown_requires_stop_confirmation_after_reclaim(self) -> None:
+        frame = build_price_features(_synthetic_false_break_frame_reclaim_fails_confirmation())
         signals = scan_signals(
             frame,
             symbol="000001",

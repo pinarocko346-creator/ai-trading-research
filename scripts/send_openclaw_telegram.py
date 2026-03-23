@@ -102,6 +102,8 @@ def _build_success_message(manifest: dict[str, object]) -> str:
         f"股票池数量: {manifest.get('universe_size', 0)}",
         f"扫描信号数: {manifest.get('scan_result_count', 0)}",
         f"日报候选数: {manifest.get('report_signal_count', 0)}",
+        f"价值快照数: {manifest.get('value_signal_count', 0)}",
+        f"累计事件数: {manifest.get('value_history_count', 0)}",
     ]
     if manifest.get("sqlite_latest_trade_date"):
         lines.append(f"SQLite 最新交易日: {manifest['sqlite_latest_trade_date']}")
@@ -175,6 +177,7 @@ def main() -> None:
     files = [
         (Path(str(outputs.get("daily_candidates_csv", ""))), "每日候选 CSV"),
         (Path(str(outputs.get("daily_report_md", ""))), "日报 Markdown"),
+        (Path(str(outputs.get("daily_value_report_md", ""))), "价值验证看板"),
     ]
     for path, caption in files:
         if path.exists():

@@ -274,6 +274,13 @@ class RuleThresholds:
     false_break_min_breakdown_close_in_range: float = 0.35
     false_break_reclaim_min_rebound_from_low_pct: float = 0.01
     false_break_reclaim_min_close_above_support_pct: float = 0.003
+    false_break_reclaim_min_close_in_range: float = 0.6
+    false_break_reclaim_min_close_above_break_open_pct: float = 0.0
+    false_break_confirmation_bars: int = 2
+    false_break_confirm_close_vs_ma10_min_ratio: float = 0.995
+    false_break_confirm_close_vs_ma20_min_ratio: float = 0.995
+    false_break_confirm_ma20_min_slope_ratio: float = 0.998
+    false_break_post_reclaim_low_tolerance_pct: float = 0.002
     right_shoulder_similarity_pct: float = 0.08
     right_shoulder_bounce_pct: float = 0.015
     right_shoulder_signal_bars_from_low: int = 5
@@ -469,7 +476,7 @@ def detect_2b_structure(
     df = _prepare_frame(frame)
     if len(df) < max(30, thresholds.swing_lookback + 5):
         return None
-    recent_window = df.tail(thresholds.signal_recency_days).copy()
+    recent_window = df.tail(thresholds.signal_recency_days + thresholds.false_break_confirmation_bars).copy()
     prior_swing_low, _ = _prior_swing_levels(
         df,
         recent_window.iloc[0]["date"],
@@ -603,7 +610,9 @@ def detect_false_breakdown(
         return None
 
     breakdown_bar = breakdown_candidates.iloc[0]
-    after_break = recent_window[recent_window["date"] >= breakdown_bar["date"]].head(thresholds.false_break_reclaim_bars + 1)
+    after_break = recent_window[recent_window["date"] >= breakdown_bar["date"]].head(
+        thresholds.false_break_reclaim_bars + thresholds.false_break_confirmation_bars + 1
+    )
     breakdown_close_position = (float(breakdown_bar["close"]) - float(breakdown_bar["low"])) / max(
         float(breakdown_bar["high"]) - float(breakdown_bar["low"]), 1e-6
     )
@@ -611,25 +620,33 @@ def detect_false_breakdown(
         float(breakdown_bar["support_level"]), 1e-6
     )
     close_position = (after_break["close"] - after_break["low"]) / (after_break["high"] - after_break["low"]).clip(lower=1e-6)
-    reclaim_candidates = after_break[
+    rebound_from_low_pct = (after_break["close"] - after_break["low"]) / after_break["low"].clip(lower=1e-6)
+    reclaim_window = after_break.head(thresholds.false_break_reclaim_bars + 1)
+    reclaim_candidates = reclaim_window[
         (
-            after_break["close"]
-            >= after_break["support_level"] * (1 + thresholds.false_break_reclaim_min_close_above_support_pct)
+            reclaim_window["close"]
+            >= reclaim_window["support_level"] * (1 + thresholds.false_break_reclaim_min_close_above_support_pct)
         )
         & (
-            (after_break["close"] - after_break["low"]) / (after_break["low"].clip(lower=1e-6))
-            >= thresholds.false_break_reclaim_min_rebound_from_low_pct
+            rebound_from_low_pct.head(len(reclaim_window)) >= thresholds.false_break_reclaim_min_rebound_from_low_pct
         )
         & (
-            after_break["bullish"]
+            reclaim_window["bullish"]
             | (
-                (after_break["body_pct"] >= thresholds.false_break_min_body_pct)
-                & (after_break["close_in_range"] >= thresholds.false_break_min_close_in_range)
+                (reclaim_window["body_pct"] >= thresholds.false_break_min_body_pct)
+                & (reclaim_window["close_in_range"] >= thresholds.false_break_min_close_in_range)
             )
-            | (thresholds.false_break_close_in_upper_half & (close_position >= 0.65))
+            | (thresholds.false_break_close_in_upper_half & (close_position.head(len(reclaim_window)) >= 0.65))
         )
     ]
     if reclaim_candidates.empty:
+        reclaim_attempt = bool(
+            close_position.max() >= thresholds.false_break_reclaim_min_close_in_range - 1e-6
+            or rebound_from_low_pct.max() >= thresholds.false_break_reclaim_min_rebound_from_low_pct - 1e-6
+            or after_break["close"].max() >= float(breakdown_bar["support_level"]) * (1 - thresholds.false_break_reclaim_tolerance_pct)
+        )
+        if not reclaim_attempt:
+            return None
         return _empty_signal(
             "false_breakdown",
             symbol,
@@ -648,17 +665,39 @@ def detect_false_breakdown(
             invalid_reason="出现了假诱空雏形，但回拉确认还不够",
         )
 
-    reclaim_bar = reclaim_candidates.iloc[-1]
+    reclaim_bar = reclaim_candidates.iloc[0]
     support = float(breakdown_bar["support_level"])
     broke_support = bool((after_break["low"] < support).any())
     reclaim_in_time = bool((reclaim_bar["date"] - breakdown_bar["date"]).days <= thresholds.false_break_reclaim_bars + 1)
+    reclaim_rebound_from_low_pct = (float(reclaim_bar["close"]) - float(reclaim_bar["low"])) / max(float(reclaim_bar["low"]), 1e-6)
+    confirm_window = after_break[after_break["date"] >= reclaim_bar["date"]]
+    if len(confirm_window) < thresholds.false_break_confirmation_bars:
+        return None
+    confirm_bar = confirm_window.iloc[-1]
+    no_new_low_after_reclaim = bool(
+        float(confirm_window["low"].min())
+        >= float(reclaim_bar["low"]) * (1 - thresholds.false_break_post_reclaim_low_tolerance_pct)
+    )
+    confirm_close_vs_ma10 = _safe_ratio(float(confirm_bar["close"]), float(confirm_bar["ma_10"]))
+    confirm_close_vs_ma20 = _safe_ratio(float(confirm_bar["close"]), float(confirm_bar["ma_20"]))
+    ma20_reference = confirm_window.iloc[0]
+    ma20_flat_enough = bool(
+        float(confirm_bar["ma_20"])
+        >= float(ma20_reference["ma_20"]) * thresholds.false_break_confirm_ma20_min_slope_ratio
+    )
     reclaim_strength_ok = bool(
         reclaim_bar["close"] > breakdown_bar["close"] if thresholds.false_break_close_above_break_bar else True
+    )
+    reclaim_above_break_open = bool(
+        float(reclaim_bar["close"])
+        >= float(breakdown_bar["open"]) * (1 + thresholds.false_break_reclaim_min_close_above_break_open_pct)
     )
 
     trend_ok = bool(
         history["drawdown_from_high_60"].iloc[-1] > thresholds.two_b_min_drawdown * 0.8
-        and (history["trend_down"].tail(8).any() or history["close"].iloc[-1] < history["ma_20"].iloc[-1])
+        and confirm_close_vs_ma10 >= thresholds.false_break_confirm_close_vs_ma10_min_ratio
+        and confirm_close_vs_ma20 >= thresholds.false_break_confirm_close_vs_ma20_min_ratio
+        and ma20_flat_enough
     )
     location_ok = bool(
         broke_support
@@ -669,8 +708,10 @@ def detect_false_breakdown(
         reclaim_bar["close"] >= support * (1 + thresholds.false_break_reclaim_min_close_above_support_pct)
         and reclaim_in_time
         and reclaim_strength_ok
-        and (float(reclaim_bar["close"]) - float(reclaim_bar["low"])) / max(float(reclaim_bar["low"]), 1e-6)
-        >= thresholds.false_break_reclaim_min_rebound_from_low_pct
+        and reclaim_above_break_open
+        and reclaim_rebound_from_low_pct >= thresholds.false_break_reclaim_min_rebound_from_low_pct - 1e-6
+        and float(reclaim_bar["close_in_range"]) >= thresholds.false_break_reclaim_min_close_in_range - 1e-6
+        and no_new_low_after_reclaim
         and (
             reclaim_bar["bullish"]
             or (
@@ -693,7 +734,7 @@ def detect_false_breakdown(
     return _empty_signal(
         "false_breakdown",
         symbol,
-        reclaim_bar,
+        confirm_bar,
         trend_ok=trend_ok,
         location_ok=location_ok,
         pattern_ok=pattern_ok,
@@ -704,15 +745,19 @@ def detect_false_breakdown(
             "support": support,
             "breakdown_date": breakdown_bar["date"].date().isoformat(),
             "reclaim_date": reclaim_bar["date"].date().isoformat(),
+            "confirm_date": confirm_bar["date"].date().isoformat(),
             "reclaim_in_time": reclaim_in_time,
             "support_source": "swing_low" if prior_swing_low is not None else "rolling_low",
-            "volume_ratio": float(reclaim_bar["volume_ratio"]),
-            "close_in_range": float(reclaim_bar["close_in_range"]),
+            "volume_ratio": float(confirm_bar["volume_ratio"]),
+            "close_in_range": float(confirm_bar["close_in_range"]),
             "break_pct": float(break_pct),
             "breakdown_close_in_range": float(breakdown_close_position),
-            "rebound_from_low_pct": float(
-                (float(reclaim_bar["close"]) - float(reclaim_bar["low"])) / max(float(reclaim_bar["low"]), 1e-6)
-            ),
+            "rebound_from_low_pct": float(reclaim_rebound_from_low_pct),
+            "reclaim_above_break_open": reclaim_above_break_open,
+            "no_new_low_after_reclaim": no_new_low_after_reclaim,
+            "confirm_close_vs_ma10": float(confirm_close_vs_ma10),
+            "confirm_close_vs_ma20": float(confirm_close_vs_ma20),
+            "ma20_flat_enough": ma20_flat_enough,
         },
         invalid_reason=invalid_reason,
     )
